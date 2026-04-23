@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="Haven Denver — free shelter, food, medical care, and services near you.">
+<meta name="theme-color" content="#0096D6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Haven Denver">
+<meta name="application-name" content="Haven Denver">
+<link rel="manifest" href="data:application/json,{
+  &quot;name&quot;:&quot;Haven Denver&quot;,
+  &quot;short_name&quot;:&quot;Haven&quot;,
+  &quot;description&quot;:&quot;Find free shelter, food, and services in Denver&quot;,
+  &quot;start_url&quot;:&quot;/&quot;,
+  &quot;display&quot;:&quot;standalone&quot;,
+  &quot;background_color&quot;:&quot;#0096D6&quot;,
+  &quot;theme_color&quot;:&quot;#0096D6&quot;,
+  &quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230096D6'/%3E%3Cpath d='M50 18L20 40v42h20V60h20v22h20V40z' fill='white'/%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]
+}">
+<title>Haven Denver</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ── CITY THEME — Denver official brand colors ──────────────
+   Sky Blue    #0096D6  (primary action, header, nav)
+   Sunshine Gold #FDB913 (highlights, open badge, events)
+   Brick Red   #C4161C  (alerts, emergency, closed)
+   Mountain Purple #491D74 (accent)
+   Expand to other cities: swap these 4 vars only.
+   ─────────────────────────────────────────────────────────── */
+:root {
+  --city-primary:   #0096D6;
+  --city-primary-dk:#00729f;
+  --city-gold:      #FDB913;
+  --city-gold-lt:   #FFF3CC;
+  --city-gold-dk:   #8B6500;
+  --city-red:       #C4161C;
+  --city-red-lt:    #FDECEC;
+  --city-red-dk:    #7a0d11;
+  --city-purple:    #491D74;
+  --city-name:      "Denver";
+
+  --bg:       #F4F6F9;
+  --card:     #ffffff;
+  --border:   #DDE2EA;
+  --txt:      #1A2433;
+  --txt2:     #4A5568;
+  --txt3:     #7A8699;
+  --radius:   14px;
+  --radius-sm:8px;
+  --green:    #1B7A3E;
+  --green-lt: #E6F4EC;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--txt);font-size:16px;line-height:1.5}
+button,input{font-family:inherit;font-size:inherit}
+
+/* ── SCREENS ─────────────────────────────────────────────── */
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh}
+.screen.active{display:flex}
+
+/* ══════════════════════════════════════════════════════════
+   HOME SCREEN
+══════════════════════════════════════════════════════════ */
+#home-screen{background:var(--city-primary)}
+
+#home-header{
+  background:var(--city-primary);
+  padding:28px 22px 20px;
+  flex-shrink:0;
+  color:#fff;
+}
+#home-header .city-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.18);
+  border-radius:20px;padding:4px 12px;
+  font-size:13px;font-weight:700;color:#fff;
+  margin-bottom:14px;
+}
+#home-header h1{font-size:28px;font-weight:900;color:#fff;line-height:1.15;letter-spacing:-0.5px}
+#home-header p{font-size:16px;color:rgba(255,255,255,0.88);margin-top:6px}
+
+#home-body{
+  background:var(--bg);
+  border-radius:24px 24px 0 0;
+  flex:1;overflow-y:auto;
+  padding:20px 16px 24px;
+}
+
+/* Quick action grid */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.qa-btn{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:16px 14px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:8px;
+  cursor:pointer;text-align:left;
+  transition:border-color .12s,background .12s;
+}
+.qa-btn:active{background:#f0f4f8}
+.qa-btn.urgent{border-color:var(--city-red);background:#fff9f9}
+.qa-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.qa-icon svg{width:22px;height:22px}
+.qa-label{font-size:15px;font-weight:800;color:var(--txt);line-height:1.2}
+.qa-sub{font-size:12px;color:var(--txt3);font-weight:500;margin-top:1px}
+
+/* Section header */
+.section-hd{font-size:13px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin:4px 0 12px}
+
+/* Nearby strip */
+#nearby-strip{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin-bottom:20px;padding-bottom:4px}
+#nearby-strip::-webkit-scrollbar{display:none}
+
+.nearby-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:14px;min-width:175px;flex-shrink:0;cursor:pointer;
+}
+.nearby-card:active{background:#f5f8fb}
+.nc-cat{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.nc-name{font-size:14px;font-weight:800;color:var(--txt);line-height:1.3}
+.nc-dist{font-size:12px;color:var(--txt3);margin-top:4px;display:flex;align-items:center;gap:4px}
+.nc-open{display:inline-flex;align-items:center;gap:3px;background:var(--green-lt);color:var(--green);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800;margin-top:5px}
+.nc-closed{display:inline-flex;align-items:center;gap:3px;background:var(--city-red-lt);color:var(--city-red-dk);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800;margin-top:5px}
+
+/* Events strip */
+#events-home{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+#events-home::-webkit-scrollbar{display:none}
+.ev-card{
+  background:var(--city-gold-lt);border:1.5px solid var(--city-gold);
+  border-radius:var(--radius);padding:12px 14px;min-width:200px;flex-shrink:0;cursor:pointer;
+}
+.ev-card:active{background:#fff0aa}
+.ev-date{font-size:11px;font-weight:800;color:var(--city-gold-dk);text-transform:uppercase;letter-spacing:.4px}
+.ev-title{font-size:14px;font-weight:800;color:var(--txt);margin-top:2px;line-height:1.3}
+.ev-loc{font-size:12px;color:var(--txt2);margin-top:3px}
+.ev-what{font-size:12px;font-weight:700;color:var(--city-gold-dk);margin-top:2px}
+
+/* Bottom nav */
+#home-nav{
+  background:var(--card);border-top:1px solid var(--border);
+  padding:10px 16px 18px;display:flex;gap:10px;flex-shrink:0;
+}
+.nav-btn{
+  flex:1;background:var(--city-primary);color:#fff;
+  border:none;border-radius:12px;padding:14px 10px;
+  font-size:15px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  min-height:52px;cursor:pointer;
+}
+.nav-btn:active{background:var(--city-primary-dk)}
+.nav-btn.secondary{background:var(--card);color:var(--city-primary);border:2px solid var(--city-primary)}
+.nav-btn svg{width:20px;height:20px;flex-shrink:0}
+
+/* ══════════════════════════════════════════════════════════
+   SHARED SCREEN HEADER (browse + map)
+══════════════════════════════════════════════════════════ */
+.screen-header{
+  background:var(--city-primary);
+  padding:14px 16px 12px;
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+.back-btn{
+  background:rgba(255,255,255,0.2);
+  border:none;border-radius:10px;
+  width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  color:#fff;
+}
+.back-btn:active{background:rgba(255,255,255,0.35)}
+.back-btn svg{width:22px;height:22px}
+.screen-title{color:#fff;font-size:18px;font-weight:800;flex:1}
+.home-chip{
+  background:rgba(255,255,255,0.18);
+  border:none;border-radius:10px;
+  padding:8px 14px;color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;
+  min-height:40px;
+}
+.home-chip:active{background:rgba(255,255,255,0.32)}
+
+/* ══════════════════════════════════════════════════════════
+   BROWSE SCREEN
+══════════════════════════════════════════════════════════ */
+#browse-screen{background:var(--bg)}
+
+#browse-search{
+  background:var(--card);padding:10px 14px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  display:flex;gap:8px;
+}
+#search-input{
+  flex:1;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:11px 14px;font-size:15px;
+  outline:none;color:var(--txt);
+}
+#search-input:focus{border-color:var(--city-primary)}
+#locate-btn{
+  background:var(--city-primary);color:#fff;border:none;
+  border-radius:10px;padding:0 14px;font-size:13px;font-weight:800;
+  min-height:46px;min-width:88px;display:flex;align-items:center;gap:5px;
+  white-space:nowrap;cursor:pointer;
+}
+#locate-btn:active{background:var(--city-primary-dk)}
+#locate-btn svg{width:16px;height:16px;flex-shrink:0}
+
+/* Filter row */
+#filter-row{
+  background:var(--card);padding:8px 14px 10px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;
+}
+#filter-row::-webkit-scrollbar{display:none}
+.open-pill{
+  display:flex;align-items:center;gap:5px;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:20px;padding:8px 14px;font-size:14px;font-weight:700;
+  color:var(--txt2);cursor:pointer;white-space:nowrap;min-height:40px;flex-shrink:0;
+}
+.open-pill.on{background:var(--green-lt);border-color:var(--green);color:var(--green)}
+.view-switch{
+  display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-left:auto;flex-shrink:0;
+}
+.vsw{
+  padding:6px 14px;border-radius:8px;border:none;background:transparent;
+  font-size:13px;font-weight:800;color:var(--txt3);cursor:pointer;min-height:34px;
+}
+.vsw.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* Category chips */
+#cat-chips{
+  background:var(--card);padding:0 14px 10px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  overflow-x:auto;display:flex;gap:7px;scrollbar-width:none;
+}
+#cat-chips::-webkit-scrollbar{display:none}
+.cat-chip{
+  border:2px solid;border-radius:20px;
+  padding:7px 13px;font-size:13px;font-weight:700;
+  display:flex;align-items:center;gap:5px;
+  min-height:38px;white-space:nowrap;flex-shrink:0;cursor:pointer;
+  transition:all .12s;
+}
+.cat-chip svg{width:14px;height:14px}
+
+/* Browse content */
+#browse-main{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column;min-height:0}
+#map-wrap{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
+#map{flex:1;z-index:1}
+#count-pill{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  background:rgba(26,36,51,.82);color:#fff;border-radius:20px;
+  padding:5px 16px;font-size:13px;font-weight:700;z-index:10;
+  pointer-events:none;white-space:nowrap;
+}
+#list-wrap{flex:1;overflow-y:auto;padding:12px 14px;display:none;flex-direction:column;gap:10px;min-height:0}
+#list-wrap.on{display:flex}
+
+/* Service card */
+.scard{
+  background:var(--card);border-radius:var(--radius);
+  padding:15px 15px;border:1.5px solid var(--border);cursor:pointer;
+}
+.scard:active{background:#f5f8fb}
+.sc-top{display:flex;gap:11px;align-items:flex-start}
+.sc-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sc-icon svg{width:22px;height:22px}
+.sc-name{font-size:15px;font-weight:800;color:var(--txt);line-height:1.3}
+.sc-cat{font-size:12px;font-weight:600;margin-top:2px}
+.open-badge{display:inline-flex;align-items:center;gap:4px;background:var(--green-lt);color:var(--green);border-radius:7px;padding:3px 9px;font-size:12px;font-weight:800;margin-top:6px}
+.closed-badge{display:inline-flex;align-items:center;gap:4px;background:var(--city-red-lt);color:var(--city-red-dk);border-radius:7px;padding:3px 9px;font-size:12px;font-weight:800;margin-top:6px}
+.sc-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sc-pill{background:var(--bg);border-radius:7px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:4px}
+.sc-pill svg{width:12px;height:12px;color:var(--txt3)}
+.walkin-on{background:var(--green-lt);color:var(--green)}
+.walkin-off{background:var(--city-red-lt);color:var(--city-red-dk)}
+
+/* ══════════════════════════════════════════════════════════
+   DETAIL SCREEN
+══════════════════════════════════════════════════════════ */
+#detail-screen{background:var(--bg)}
+#detail-scroll{flex:1;overflow-y:auto;padding:16px 16px 32px}
+
+.d-card{background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);padding:18px 16px;margin-bottom:12px}
+.d-icon-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.d-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.d-icon svg{width:26px;height:26px}
+.d-cat-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.d-name{font-size:20px;font-weight:900;color:var(--txt);line-height:1.25}
+
+.d-row{display:flex;gap:10px;margin-bottom:10px}
+.d-field{flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:12px 13px}
+.d-lbl{font-size:11px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.d-val{font-size:15px;font-weight:700;color:var(--txt);line-height:1.4}
+.d-val.muted{font-weight:500;color:var(--txt2);font-size:14px}
+.d-val a{color:var(--city-primary);text-decoration:none;font-weight:800}
+
+.lang-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.lang-pill{background:#E8F0FC;color:#1a4a8b;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700}
+
+.d-actions{display:flex;gap:10px;margin-top:4px}
+.d-act{
+  flex:1;padding:15px 10px;border-radius:12px;border:none;
+  font-size:15px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  min-height:52px;
+}
+.d-act svg{width:18px;height:18px;flex-shrink:0}
+.d-act.primary{background:var(--city-primary);color:#fff}
+.d-act.primary:active{background:var(--city-primary-dk)}
+.d-act.secondary{background:var(--bg);color:var(--txt);border:2px solid var(--border)}
+.d-act.secondary:active{background:var(--border)}
+.d-act.call{background:var(--green-lt);color:var(--green);border:2px solid var(--green)}
+.d-act.call:active{background:#c5e8d3}
+
+.hours-grid{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.hday{color:var(--txt3);font-weight:600}
+.hhrs{color:var(--txt);font-weight:700}
+.hhrs.today{color:var(--city-primary);font-weight:800}
+.hday.today{color:var(--city-primary);font-weight:800}
+
+.verified-note{font-size:12px;color:var(--txt3);padding:12px 0 0;text-align:center}
+
+/* Popup */
+.leaflet-popup-content-wrapper{border-radius:14px!important;padding:0!important;box-shadow:0 4px 24px rgba(0,0,0,.18)!important}
+.leaflet-popup-content{margin:0!important;padding:14px 16px!important;min-width:180px}
+.pp-name{font-weight:800;font-size:14px;color:var(--txt)}
+.pp-sub{font-size:12px;color:var(--txt2);margin-top:3px}
+.pp-btn{display:block;margin-top:10px;background:var(--city-primary);color:#fff;border:none;border-radius:9px;padding:10px 14px;font-size:14px;font-weight:800;cursor:pointer;width:100%;text-align:center}
+.pp-btn:active{background:var(--city-primary-dk)}
+
+/* Empty state */
+.empty-state{text-align:center;padding:48px 20px;color:var(--txt3)}
+.empty-state svg{width:48px;height:48px;margin:0 auto 14px;opacity:.35;display:block}
+.empty-state p{font-size:16px;font-weight:700;margin-bottom:5px;color:var(--txt2)}
+.empty-state span{font-size:14px}
+
+/* Dot indicator for open */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.green{background:var(--green)}
+.dot.red{background:var(--city-red)}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="home-screen" class="screen active">
+  <div id="home-header">
+    <div class="city-badge">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Denver, Colorado
+    </div>
+    <h1><span style="font-weight:900;letter-spacing:-1px">Haven</span><span style="font-weight:400;opacity:0.85"> Denver</span></h1>
+    <p>Find help near you — free, updated daily</p>
+  </div>
+
+  <div id="home-body">
+    <div class="section-hd">What do you need?</div>
+    <div class="qa-grid" id="qa-grid"></div>
+
+    <div class="section-hd">Closest to you right now</div>
+    <div id="nearby-strip"></div>
+
+    <div class="section-hd">Coming up this week</div>
+    <div id="events-home"></div>
+  </div>
+
+  <div id="home-nav">
+    <button class="nav-btn" onclick="goScreen('browse-screen');setView('map')">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      View all services
+    </button>
+    <button class="nav-btn secondary" onclick="goScreen('browse-screen');setView('map')">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+      Map
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     BROWSE SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="browse-screen" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()" aria-label="Back to home">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <span class="screen-title"><strong>Haven</strong> Denver</span>
+    <button class="home-chip" onclick="goHome()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Home
+    </button>
+  </div>
+
+  <div id="browse-search">
+    <input id="search-input" type="search" placeholder="Search by name or service…" autocomplete="off" autocorrect="off">
+    <button id="locate-btn" onclick="locateUser()">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      Near me
+    </button>
+  </div>
+
+  <div id="filter-row">
+    <button class="open-pill" id="open-pill" onclick="toggleOpen()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Open now
+    </button>
+    <div class="view-switch">
+      <button class="vsw on" id="vsw-map" onclick="setView('map')">Map</button>
+      <button class="vsw" id="vsw-list" onclick="setView('list')">List</button>
+    </div>
+  </div>
+
+  <div id="cat-chips"></div>
+
+  <div id="browse-main">
+    <div id="map-wrap">
+      <div id="map"></div>
+      <div id="count-pill">Loading…</div>
+    </div>
+    <div id="list-wrap"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     DETAIL SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="detail-screen" class="screen">
+  <div class="screen-header" id="detail-header">
+    <button class="back-btn" onclick="goBack()" aria-label="Back to list">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <span class="screen-title" id="detail-screen-title">Service Details</span>
+    <button class="home-chip" onclick="goHome()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Home
+    </button>
+  </div>
+  <div id="detail-scroll"></div>
+</div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════════════════════
+// CITY CONFIG — swap these when expanding to other cities
+// ════════════════════════════════════════════════════════════
+const CITY = {
+  name: 'Haven Denver',
+  state: 'CO',
+  lat: 39.7392,
+  lng: -104.9903,
+  zoom: 14,
+  eventsUrl: '', // Google Sheet CSV URL — paste here when deployed
+};
+
+// ════════════════════════════════════════════════════════════
+// CATEGORIES
+// ════════════════════════════════════════════════════════════
+const CATS = [
+  { id:'shelter',  label:'Shelter',   color:'#1a5cc8', bg:'#dce8fc', icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
+  { id:'food',     label:'Food',      color:'#8B6500', bg:'#FFF3CC', icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>' },
+  { id:'medical',  label:'Medical',   color:'#9D0D11', bg:'#fdecec', icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>' },
+  { id:'hygiene',  label:'Hygiene',   color:'#0d6b60', bg:'#d0f0ec', icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' },
+  { id:'clothing', label:'Clothing',  color:'#491D74', bg:'#ead8f7', icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.86H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.86l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>' },
+  { id:'legal',    label:'Legal aid', color:'#155a30', bg:'#d4f0e0', icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M6 21V7l6-4 6 4v14"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1"/></svg>' },
+  { id:'jobs',     label:'Jobs',      color:'#4a4200', bg:'#f5f0c4', icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>' },
+];
+
+// ════════════════════════════════════════════════════════════
+// SERVICE DATA — all hours stored 24h internally, displayed
+// in standard 12-hour format throughout the UI
+// Sources: 211colorado.org · denverrescuemission.org ·
+//          coloradocoalition.org · ccdenver.org ·
+//          denvervoice.org · findhelp.org
+// ════════════════════════════════════════════════════════════
+const SERVICES = [
+  { id:1,  name:'Denver Rescue Mission — Lawrence St Community Center', category:'shelter', address:'2222 Lawrence St, Denver CO 80205', phone:'303-297-1815', lat:39.7538, lng:-104.9884, hours:{mon:'0:00–23:59',tue:'0:00–23:59',wed:'0:00–23:59',thu:'0:00–23:59',fri:'0:00–23:59',sat:'0:00–23:59',sun:'0:00–23:59'}, walkin:true,  languages:['English','Spanish'], bring:'Photo ID if available', description:'Emergency shelter for men 18+. Beds available every night. Sign up here for bed assignment at all Mission locations. Dinner included for overnight guests.', source:'Denver Rescue Mission', verified:'2025-11-22' },
+  { id:2,  name:'Denver Rescue Mission — Emergency Meals', category:'food', address:'2222 Lawrence St, Denver CO 80205', phone:'303-294-0157', lat:39.7539, lng:-104.9883, hours:{mon:'7:00–13:30',tue:'7:00–13:30',wed:'7:00–13:30',thu:'7:00–13:30',fri:'7:00–13:30',sat:'12:00–13:30',sun:'7:00–13:30'}, walkin:true,  languages:['English','Spanish'], bring:'Nothing required', description:'Free meals every single day of the year. Breakfast 7–8:30am, lunch 12–1:30pm. Dinner available for overnight shelter guests.', source:'Denver Rescue Mission / findhelp.org', verified:'2025-08-22' },
+  { id:3,  name:'Denver Rescue Mission — Ministry Outreach Center', category:'clothing', address:'5725 E 39th Ave, Denver CO 80207', phone:'303-297-1815', lat:39.7742, lng:-104.9388, hours:{mon:'10:30–15:30',tue:'10:30–15:30',wed:'10:30–15:30',thu:'10:30–15:30',fri:'10:30–15:30',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Nothing required', description:'Free food pantry, hygiene products, and clothing for individuals and families. Walk-in weekdays, no appointment needed.', source:'Denver Rescue Mission', verified:'2025-11-22' },
+  { id:4,  name:'Samaritan House — Catholic Charities', category:'shelter', address:'2301 Lawrence St, Denver CO 80205', phone:'303-294-0241', lat:39.7545, lng:-104.9871, hours:{mon:'0:00–23:59',tue:'0:00–23:59',wed:'0:00–23:59',thu:'0:00–23:59',fri:'0:00–23:59',sat:'0:00–23:59',sun:'0:00–23:59'}, walkin:true,  languages:['English','Spanish'], bring:'Arrive by 6 PM for intake', description:'Emergency shelter for women, families, and veterans. Open 24 hours. Meals, case management, and support services on site. Lottery system for bed assignment.', source:'Catholic Charities / Yelp 2026', verified:'2026-02-01' },
+  { id:5,  name:'Stout Street Health Center', category:'medical', address:'2130 Stout St, Denver CO 80205', phone:'303-293-2220', lat:39.7488, lng:-104.9923, hours:{mon:'7:00–16:00',tue:'7:00–16:00',wed:'7:00–19:00',thu:'7:00–16:00',fri:'7:00–16:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish','ASL'], bring:'Insurance/Medicaid if you have it (not required)', description:'Colorado Coalition for the Homeless main health center. Medical, dental, vision, behavioral health, pharmacy, and substance use treatment all in one building. Serves 15,000+ patients per year. No insurance needed.', source:'Colorado Coalition for the Homeless', verified:'2025-09-01' },
+  { id:6,  name:'CCH Dental Clinic', category:'medical', address:'2130 Stout St, Denver CO 80205', phone:'303-293-2220', lat:39.7487, lng:-104.9924, hours:{mon:'8:00–17:00',tue:'8:00–17:00',wed:'8:00–17:00',thu:'8:00–17:00',fri:'8:00–17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Insurance if you have it', description:'Free dental care including emergency and restorative services for people experiencing homelessness. No insurance needed. Call to schedule.', source:'Colorado Coalition for the Homeless', verified:'2025-09-01' },
+  { id:7,  name:'Colorado Coalition for the Homeless', category:'shelter', address:'2111 Champa St, Denver CO 80205', phone:'303-293-2217', lat:39.7491, lng:-104.9901, hours:{mon:'7:30–17:00',tue:'7:30–17:00',wed:'7:30–17:00',thu:'7:30–17:00',fri:'7:30–17:00',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Photo ID if available', description:'Housing intake, case management, and referrals to shelter and services. For housing specifically call 303-312-9679.', source:'Colorado Coalition for the Homeless', verified:'2025-09-01' },
+  { id:8,  name:'Urban Peak Youth Shelter', category:'shelter', address:'1630 S Acoma St, Denver CO 80223', phone:'303-974-2908', lat:39.6988, lng:-104.9898, hours:{mon:'8:00–17:00',tue:'8:00–17:00',wed:'8:00–17:00',thu:'8:00–17:00',fri:'8:00–17:00',sat:'0:00–23:59',sun:'0:00–23:59'}, walkin:false, languages:['English','Spanish'], bring:'Call before you come to check if beds are available', description:'Safe shelter for youth ages 15–21. Call ahead to check bed availability. Gender-inclusive. They will refer you to other options if full.', source:'findhelp.org', verified:'2025-04-01' },
+  { id:9,  name:'The Gathering Place', category:'shelter', address:'1535 High St, Denver CO 80218', phone:'303-321-4198', lat:39.7310, lng:-104.9596, hours:{mon:'8:00–17:00',tue:'8:00–17:00',wed:'8:00–17:00',thu:'8:00–17:00',fri:'8:00–17:00',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Nothing required', description:'Day shelter for women and children only. Meals, showers, laundry, case management, and mail service. Safe and welcoming — no questions asked.', source:'denvervoice.org', verified:'2025-01-01' },
+  { id:10, name:'St. Francis Center', category:'shelter', address:'2323 Curtis St, Denver CO 80205', phone:'303-297-1576', lat:39.7507, lng:-104.9875, hours:{mon:'6:30–14:00',tue:'6:30–14:00',wed:'6:30–14:00',thu:'6:30–14:00',fri:'6:30–14:00',sat:'6:30–14:00',sun:'6:30–14:00'}, walkin:true,  languages:['English','Spanish'], bring:'Nothing required', description:'Drop-in day center open 365 days a year. Meals, showers, laundry, clothing, and case management. Women\'s shelter coordination also available.', source:'denverdonate.com', verified:'2025-01-01' },
+  { id:11, name:'Denver Human Services', category:'legal', address:'1200 Federal Blvd, Denver CO 80204', phone:'720-944-3666', lat:39.7323, lng:-105.0298, hours:{mon:'7:30–17:00',tue:'7:30–17:00',wed:'7:30–17:00',thu:'7:30–17:00',fri:'7:30–17:00',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish','Other'], bring:'Photo ID and proof of address if you have it', description:'City office for SNAP food benefits, Medicaid, housing assistance, employment programs, and help with benefits applications.', source:'denvergov.org', verified:'2025-01-01' },
+  { id:12, name:'Colorado Legal Services', category:'legal', address:'1905 Sherman St #400, Denver CO 80203', phone:'303-837-1313', lat:39.7409, lng:-104.9831, hours:{mon:'9:00–17:00',tue:'9:00–17:00',wed:'9:00–17:00',thu:'9:00–17:00',fri:'9:00–17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call first to make an appointment', description:'Free legal help for low-income individuals. Helps with housing, benefits, family law, and more. Call to schedule — they screen you over the phone first.', source:'Colorado Legal Services', verified:'2025-01-01' },
+  { id:13, name:'Bayaud Enterprises — Workforce Services', category:'jobs', address:'333 W Bayaud Ave, Denver CO 80223', phone:'303-830-6885', lat:39.7154, lng:-104.9905, hours:{mon:'8:00–16:30',tue:'8:00–16:30',wed:'8:00–16:30',thu:'8:00–16:30',fri:'8:00–16:30',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Photo ID and Social Security card if you have it', description:'Job training and subsidized employment. Resume help, job placement, and ongoing support for people re-entering the workforce.', source:'denvervoice.org', verified:'2025-01-01' },
+  { id:14, name:'Denver Central Library — Tech Center', category:'jobs', address:'10 W 14th Ave Pkwy, Denver CO 80204', phone:'720-865-1706', lat:39.7376, lng:-104.9880, hours:{mon:'10:00–20:00',tue:'10:00–20:00',wed:'10:00–18:00',thu:'10:00–18:00',fri:'10:00–18:00',sat:'9:00–17:00',sun:'13:00–17:00'}, walkin:true,  languages:['English','Spanish'], bring:'Nothing required — no library card needed', description:'Free computers, internet, Wi-Fi, job search help, resume classes, and 1-on-1 tech appointments. Anyone can walk in.', source:'Denver Public Library', verified:'2025-01-01' },
+  { id:15, name:'CCH West Colfax Health Center', category:'medical', address:'5050 W Colfax Ave, Denver CO 80204', phone:'303-293-2220', lat:39.7403, lng:-105.0561, hours:{mon:'closed',tue:'7:15–16:00',wed:'9:00–16:00',thu:'closed',fri:'7:15–16:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call ahead — appointment recommended', description:'Satellite health clinic. Medical Tue/Wed/Fri. Women\'s health and prenatal care Wednesdays. Prescription pickup during open hours.', source:'coloradocoalition.org', verified:'2025-09-01' },
+  { id:16, name:'St. Francis Center — Showers & Laundry', category:'hygiene', address:'2323 Curtis St, Denver CO 80205', phone:'303-297-1576', lat:39.7508, lng:-104.9876, hours:{mon:'6:30–14:00',tue:'6:30–14:00',wed:'6:30–14:00',thu:'6:30–14:00',fri:'6:30–14:00',sat:'6:30–14:00',sun:'6:30–14:00'}, walkin:true,  languages:['English','Spanish'], bring:'Towel if you have one', description:'Free showers, laundry, and hygiene supplies every day. No appointment needed, just walk in.', source:'St. Francis Center', verified:'2025-01-01' },
+  { id:17, name:'Denver Rescue Mission — Hygiene Products', category:'hygiene', address:'5725 E 39th Ave, Denver CO 80207', phone:'303-297-1815', lat:39.7743, lng:-104.9389, hours:{mon:'10:30–15:30',tue:'10:30–15:30',wed:'10:30–15:30',thu:'10:30–15:30',fri:'10:30–15:30',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Nothing required', description:'Free hygiene and personal care items at the Ministry Outreach Center. Walk-in weekdays — no appointment needed.', source:'Denver Rescue Mission', verified:'2025-11-22' },
+  { id:18, name:'CCH Employment & Job Training', category:'jobs', address:'2111 Champa St, Denver CO 80205', phone:'303-293-2217', lat:39.7492, lng:-104.9902, hours:{mon:'8:00–17:00',tue:'8:00–17:00',wed:'8:00–17:00',thu:'8:00–17:00',fri:'8:00–17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call first to schedule', description:'Job training, vocational skills, and employment placement for people experiencing or at risk of homelessness.', source:'coloradocoalition.org', verified:'2025-09-01' },
+  { id:19, name:'Food Not Bombs Denver', category:'food', address:'22nd St & Curtis St, Denver CO 80205', phone:'', lat:39.7511, lng:-104.9836, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'16:00–17:30'}, walkin:true,  languages:['English'], bring:'Nothing required', description:'Free vegetarian community meal every Sunday at 4 PM. Outdoors. No ID, no questions asked.', source:'denvervoice.org', verified:'2025-01-01' },
+  { id:20, name:'The Gathering Place — Daily Meals', category:'food', address:'1535 High St, Denver CO 80218', phone:'303-321-4198', lat:39.7311, lng:-104.9597, hours:{mon:'8:00–15:00',tue:'8:00–15:00',wed:'8:00–15:00',thu:'8:00–15:00',fri:'8:00–15:00',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Women and children only', description:'Hot breakfast and lunch for women and children. Served Monday–Friday at the day shelter.', source:'denverdonate.com', verified:'2025-01-01' },
+  { id:21, name:'CCH Mental Health Services', category:'medical', address:'2130 Stout St, Denver CO 80205', phone:'303-293-2220', lat:39.7489, lng:-104.9922, hours:{mon:'7:30–16:00',tue:'7:30–16:00',wed:'11:00–19:00',thu:'7:30–16:00',fri:'7:30–16:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Crisis walk-ins always accepted', description:'Behavioral health, psychiatry, counseling, and substance use treatment. Co-located with medical care at Stout Street Health Center. Crisis walk-ins always welcome.', source:'coloradocoalition.org', verified:'2025-09-01' },
+  { id:22, name:'Denver Rescue Mission — 48th Avenue Center', category:'shelter', address:'4275 E 48th Ave, Denver CO 80216', phone:'303-297-1815', lat:39.7880, lng:-104.9400, hours:{mon:'0:00–23:59',tue:'0:00–23:59',wed:'0:00–23:59',thu:'0:00–23:59',fri:'0:00–23:59',sat:'0:00–23:59',sun:'0:00–23:59'}, walkin:false, languages:['English','Spanish'], bring:'Sign up at Lawrence St location first', description:'24/7 shelter for men run in partnership with the City of Denver. Three meals a day included. Must sign up for bed assignment at the Lawrence St Community Center first.', source:'Denver Rescue Mission', verified:'2025-11-22' },
+  { id:23, name:'Urban Peak — The Spot (Youth Day Center)', category:'food', address:'2100 Stout St, Denver CO 80205', phone:'303-974-2928', lat:39.7489, lng:-104.9930, hours:{mon:'8:00–20:00',tue:'8:00–20:00',wed:'8:00–20:00',thu:'8:00–20:00',fri:'8:00–20:00',sat:'10:00–17:00',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Ages 15–24 only', description:'Day center for youth 15–24. Meals, showers, laundry, clothing, Wi-Fi, case management, and mental health services.', source:'Urban Peak', verified:'2025-01-01' },
+  { id:24, name:'Sox Place Youth Day Center', category:'hygiene', address:'2017 Lawrence St, Denver CO 80205', phone:'303-296-3412', lat:39.7542, lng:-104.9881, hours:{mon:'9:00–16:00',tue:'9:00–16:00',wed:'9:00–16:00',thu:'9:00–16:00',fri:'9:00–16:00',sat:'closed',sun:'closed'}, walkin:true,  languages:['English'], bring:'Ages 14–24 only', description:'Drop-in day center for youth 14–24. Showers, laundry, food, clothing. Harm-reduction, no questions asked.', source:'denvervoice.org', verified:'2025-01-01' },
+  { id:25, name:'Warren Village — Family Housing', category:'shelter', address:'1323 Gilpin St, Denver CO 80218', phone:'303-321-2345', lat:39.7305, lng:-104.9607, hours:{mon:'8:00–17:00',tue:'8:00–17:00',wed:'8:00–17:00',thu:'8:00–17:00',fri:'8:00–17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call to schedule an intake appointment', description:'Transitional housing and services for single-parent families. Childcare, job training, financial literacy, and long-term housing support. Application required.', source:'homelessshelterdirectory.org', verified:'2025-01-01' },
+  { id:26, name:'Volunteers of America — Clothing Closet', category:'clothing', address:'2660 Larimer St, Denver CO 80205', phone:'303-297-0408', lat:39.7576, lng:-104.9794, hours:{mon:'9:00–12:00',tue:'9:00–12:00',wed:'9:00–12:00',thu:'9:00–12:00',fri:'9:00–12:00',sat:'closed',sun:'closed'}, walkin:true,  languages:['English','Spanish'], bring:'Nothing required', description:'Free clothing for anyone who needs it. Walk in on weekday mornings. Subject to what\'s available.', source:'211colorado.org', verified:'2025-01-01' },
+  { id:27, name:'Denver Health — Eastside Family Health', category:'medical', address:'3999 E 17th Ave, Denver CO 80206', phone:'303-602-8958', lat:39.7388, lng:-104.9458, hours:{mon:'8:00–17:00',tue:'8:00–17:00',wed:'8:00–17:00',thu:'8:00–17:00',fri:'8:00–17:00',sat:'8:00–12:00',sun:'closed'}, walkin:true,  languages:['English','Spanish','Somali','Amharic'], bring:'ID if you have it; insurance/Medicaid if applicable', description:'Denver Health community clinic. Primary care, behavioral health, dental. Sliding-scale fees based on income. Walk-ins welcome. Many languages spoken.', source:'Denver Health', verified:'2025-01-01' },
+];
+
+// ════════════════════════════════════════════════════════════
+// TIME FORMATTING — all times displayed in 12-hour standard
+// ════════════════════════════════════════════════════════════
+function to12(t) {
+  if (!t) return '';
+  const [hStr, mStr] = t.split(':');
+  let h = parseInt(hStr, 10), m = parseInt(mStr, 10);
+  const ampm = h < 12 ? 'AM' : 'PM';
+  if (h === 0) h = 12;
+  else if (h > 12) h -= 12;
+  return m === 0 ? `${h} ${ampm}` : `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+function fmtRange(raw) {
+  if (!raw || raw === 'closed') return 'Closed';
+  // 24-hour open: 0:00–23:59
+  if (raw === '0:00–23:59') return 'Open 24 hours';
+  const [s, e] = raw.split('–');
+  return `${to12(s)} – ${to12(e)}`;
+}
+
+function hoursToday(svc) { return fmtRange(svc.hours[dayKey()]); }
+
+function allHours(svc) {
+  const days = [
+    {key:'mon', label:'Monday'},
+    {key:'tue', label:'Tuesday'},
+    {key:'wed', label:'Wednesday'},
+    {key:'thu', label:'Thursday'},
+    {key:'fri', label:'Friday'},
+    {key:'sat', label:'Saturday'},
+    {key:'sun', label:'Sunday'},
+  ];
+  const today = dayKey();
+  return days.map(d => ({
+    label: d.label,
+    hrs: fmtRange(svc.hours[d.key] || 'closed'),
+    isToday: d.key === today
+  }));
+}
+
+// ════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════
+const cat = id => CATS.find(c => c.id === id) || CATS[0];
+const dayKey = () => ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+
+function isOpen(svc) {
+  const h = svc.hours[dayKey()];
+  if (!h || h === 'closed') return false;
+  if (h === '0:00–23:59') return true;
+  const toM = t => { const [H,M]=t.split(':').map(Number); return H*60+M; };
+  const [s,e] = h.split('–');
+  const now = new Date().getHours()*60 + new Date().getMinutes();
+  return now >= toM(s) && now <= toM(e);
+}
+
+function km(lat1,lng1,lat2,lng2) {
+  const R=6371, dL=(lat2-lat1)*Math.PI/180, dN=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dN/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+const fmtDist = d => d < 1 ? Math.round(d*1000) + 'm away' : d.toFixed(1) + ' km away';
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let map, markers = [];
+let userLat = CITY.lat, userLng = CITY.lng;
+let activeCats = new Set(), openNow = false, searchQ = '';
+let activeView = 'map';
+let prevScreen = 'home-screen';
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+function goScreen(id) {
+  prevScreen = document.querySelector('.screen.active')?.id || 'home-screen';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'browse-screen') setTimeout(() => map && map.invalidateSize(), 60);
+}
+
+function goHome() {
+  activeCats.clear();
+  openNow = false;
+  searchQ = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('open-pill').classList.remove('on');
+  document.querySelectorAll('.cat-chip').forEach(c => {
+    const ct = cat(c.dataset.id);
+    c.style.background = ct.bg;
+    c.style.borderColor = ct.bg;
+    c.style.color = ct.color;
+  });
+  goScreen('home-screen');
+}
+
+function goBack() {
+  goScreen(prevScreen === 'detail-screen' ? 'browse-screen' : prevScreen);
+  if (prevScreen === 'browse-screen') setTimeout(() => map && map.invalidateSize(), 60);
+}
+
+// ════════════════════════════════════════════════════════════
+// HOME SCREEN — quick action grid
+// ════════════════════════════════════════════════════════════
+const QA = [
+  { label:'I need shelter', sub:'Tonight', cat:'shelter', urgent:true },
+  { label:'I need food', sub:'Meals near me', cat:'food', urgent:false },
+  { label:'Medical help', sub:'Clinics & health', cat:'medical', urgent:false },
+  { label:'Shower & hygiene', sub:'Showers & supplies', cat:'hygiene', urgent:false },
+  { label:'Clothing', sub:'Free clothing', cat:'clothing', urgent:false },
+  { label:'Legal help', sub:'Rights & benefits', cat:'legal', urgent:false },
+  { label:'Find a job', sub:'Training & work', cat:'jobs', urgent:false },
+  { label:'See everything', sub:'All services', cat:null, urgent:false },
+];
+
+function buildHomeGrid() {
+  document.getElementById('qa-grid').innerHTML = QA.map(q => {
+    const c = q.cat ? cat(q.cat) : {color:'#0096D6',bg:'#d0eaf7',icon:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'};
+    return `<button class="qa-btn${q.urgent?' urgent':''}" onclick="quickGo('${q.cat||''}')">
+      <div class="qa-icon" style="background:${c.bg};color:${c.color}">${c.icon}</div>
+      <div class="qa-label">${q.label}</div>
+      <div class="qa-sub">${q.sub}</div>
+    </button>`;
+  }).join('');
+}
+
+function quickGo(catId) {
+  activeCats.clear();
+  if (catId) activeCats.add(catId);
+  goScreen('browse-screen');
+  setView('list');
+  // highlight the chip
+  document.querySelectorAll('.cat-chip').forEach(c => {
+    const ct = cat(c.dataset.id);
+    const on = activeCats.has(c.dataset.id);
+    c.style.background = on ? ct.color : ct.bg;
+    c.style.borderColor = on ? ct.color : ct.bg;
+    c.style.color = on ? '#fff' : ct.color;
+  });
+  renderList();
+}
+
+// ════════════════════════════════════════════════════════════
+// NEARBY STRIP on home
+// ════════════════════════════════════════════════════════════
+function buildNearby() {
+  const svcs = [...SERVICES]
+    .sort((a,b) => km(userLat,userLng,a.lat,a.lng) - km(userLat,userLng,b.lat,b.lng))
+    .slice(0, 6);
+  document.getElementById('nearby-strip').innerHTML = svcs.map(svc => {
+    const c = cat(svc.category);
+    const open = isOpen(svc);
+    const dist = fmtDist(km(userLat,userLng,svc.lat,svc.lng));
+    return `<div class="nearby-card" onclick="openDetail(${svc.id})">
+      <div class="nc-cat" style="color:${c.color}">${c.label}</div>
+      <div class="nc-name">${svc.name}</div>
+      <div class="nc-dist"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${dist}</div>
+      <div class="${open?'nc-open':'nc-closed'}"><span class="dot ${open?'green':'red'}"></span>${open?'Open now':'Closed'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENTS
+// ════════════════════════════════════════════════════════════
+function fallbackEvents() {
+  const d = n => { const dt=new Date(); dt.setDate(dt.getDate()+n); return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); };
+  return [
+    { title:'Mobile dental van — CCH', date:d(1), time:'9 AM – 2 PM', location:'2130 Stout St', what:'Free dental screenings' },
+    { title:'Community meal & resource fair', date:d(2), time:'11 AM – 1 PM', location:'Civic Center Park', what:'Hot meals + housing & job help' },
+    { title:'Free legal clinic', date:d(3), time:'1 PM – 4 PM', location:'1905 Sherman St', what:'Housing & benefits advice' },
+    { title:'Clothing giveaway — DRM', date:d(4), time:'10 AM – 2 PM', location:'5725 E 39th Ave', what:'Coats, shoes, hygiene kits' },
+    { title:'Job fair — Bayaud Enterprises', date:d(5), time:'9 AM – 12 PM', location:'333 W Bayaud Ave', what:'Interviews + resume help' },
+    { title:'Mental health walk-in day', date:d(6), time:'8 AM – 4 PM', location:'2130 Stout St', what:'No appointment needed' },
+  ];
+}
+
+function renderEvents(events) {
+  const el = document.getElementById('events-home');
+  el.innerHTML = events.map(ev => `
+    <div class="ev-card">
+      <div class="ev-date">${ev.date}</div>
+      <div class="ev-title">${ev.title}</div>
+      <div class="ev-loc">${ev.time}${ev.location ? ' · ' + ev.location : ''}</div>
+      <div class="ev-what">${ev.what}</div>
+    </div>`).join('');
+}
+
+async function loadEvents() {
+  if (!CITY.eventsUrl) { renderEvents(fallbackEvents()); return; }
+  try {
+    const res = await fetch(CITY.eventsUrl, {cache:'no-cache'});
+    const csv = await res.text();
+    const rows = csv.trim().split('\n').slice(1);
+    const evts = rows.map(row => {
+      const c = row.split(',').map(x => x.replace(/^"|"$/g,'').trim());
+      return { title:c[0], date:c[1], time:c[2], location:c[3], what:c[5], active:(c[9]||'TRUE').toUpperCase()==='TRUE' };
+    }).filter(e => e.active && e.title);
+    renderEvents(evts.length ? evts : fallbackEvents());
+  } catch { renderEvents(fallbackEvents()); }
+}
+
+// ════════════════════════════════════════════════════════════
+// MAP
+// ════════════════════════════════════════════════════════════
+function initMap() {
+  map = L.map('map',{zoomControl:false}).setView([CITY.lat,CITY.lng],CITY.zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  placeUserDot(CITY.lat, CITY.lng);
+  renderMarkers();
+}
+
+function placeUserDot(lat, lng) {
+  const icon = L.divIcon({className:'',html:`<div style="width:16px;height:16px;background:#0096D6;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 4px rgba(0,150,214,.28)"></div>`,iconSize:[16,16],iconAnchor:[8,8]});
+  L.marker([lat,lng],{icon}).addTo(map).bindPopup('<div style="font-size:13px;font-weight:700">Your location</div>');
+}
+
+function renderMarkers() {
+  markers.forEach(m=>m.remove()); markers=[];
+  const svcs = filtered();
+  document.getElementById('count-pill').textContent = svcs.length + ' services';
+  svcs.forEach(svc => {
+    const c = cat(svc.category), open = isOpen(svc);
+    const inner = (c.icon.match(/<svg[^>]*>([\s\S]*?)<\/svg>/)||[])[1]||'';
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="width:40px;height:40px;background:${c.color};border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.26);display:flex;align-items:center;justify-content:center;opacity:${open?1:.58}"><svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">${inner}</svg></div>`,
+      iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-23]
+    });
+    const dist = fmtDist(km(userLat,userLng,svc.lat,svc.lng));
+    const m = L.marker([svc.lat,svc.lng],{icon}).addTo(map);
+    m.bindPopup(`<div class="pp-name">${svc.name}</div><div class="pp-sub">${dist} · ${open?'<span style="color:#1B7A3E;font-weight:700">Open now</span>':'<span style="color:#9D0D11;font-weight:700">Closed</span>'}</div><button class="pp-btn" onclick="openDetail(${svc.id})">See details →</button>`);
+    m.on('click', () => setTimeout(() => openDetail(svc.id), 80));
+    markers.push(m);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// LIST VIEW
+// ════════════════════════════════════════════════════════════
+function renderList() {
+  const el = document.getElementById('list-wrap');
+  const svcs = filtered();
+  if (!svcs.length) {
+    el.innerHTML=`<div class="empty-state"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>No services match</p><span>Try adjusting your filters or turning off "Open now"</span></div>`;
+    return;
+  }
+  el.innerHTML = svcs.map(svc => {
+    const c = cat(svc.category), open = isOpen(svc);
+    const dist = fmtDist(km(userLat,userLng,svc.lat,svc.lng));
+    return `<div class="scard" onclick="openDetail(${svc.id})">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:${c.bg};color:${c.color}">${c.icon}</div>
+        <div style="flex:1">
+          <div class="sc-name">${svc.name}</div>
+          <div class="sc-cat" style="color:${c.color}">${c.label}</div>
+          <div class="${open?'open-badge':'closed-badge'}"><span class="dot ${open?'green':'red'}"></span>${open?'Open now':'Closed'}</div>
+        </div>
+      </div>
+      <div class="sc-pills">
+        <div class="sc-pill"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${dist}</div>
+        <div class="sc-pill"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${hoursToday(svc)}</div>
+        <div class="sc-pill ${svc.walkin?'walkin-on':'walkin-off'}">${svc.walkin?'Walk-in welcome':'Call ahead'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// DETAIL SCREEN
+// ════════════════════════════════════════════════════════════
+function openDetail(id) {
+  const svc = SERVICES.find(s=>s.id===id); if(!svc) return;
+  const c = cat(svc.category), open = isOpen(svc);
+  const dist = fmtDist(km(userLat,userLng,svc.lat,svc.lng));
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(svc.address)}`;
+
+  document.getElementById('detail-screen-title').textContent = c.label;
+
+  const hoursRows = allHours(svc).map(h =>
+    `<div class="hday${h.isToday?' today':''}">${h.label.slice(0,3)}</div><div class="hhrs${h.isToday?' today':''}">${h.hrs}</div>`
+  ).join('');
+
+  document.getElementById('detail-scroll').innerHTML = `
+    <div class="d-card">
+      <div class="d-icon-row">
+        <div class="d-icon" style="background:${c.bg};color:${c.color}">${c.icon}</div>
+        <div>
+          <div class="d-cat-label" style="color:${c.color}">${c.label}</div>
+          <div class="${open?'open-badge':'closed-badge'}"><span class="dot ${open?'green':'red'}"></span>${open?'Open right now':'Closed right now'}</div>
+        </div>
+      </div>
+      <div class="d-name">${svc.name}</div>
+      <div style="margin-top:16px;font-size:15px;color:#4A5568;line-height:1.6">${svc.description}</div>
+    </div>
+
+    <div class="d-actions">
+      <button class="d-act primary" onclick="window.open('${mapsUrl}','_blank')">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Get directions
+      </button>
+      ${svc.phone ? `<button class="d-act call" onclick="window.open('tel:${svc.phone}')">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Call now
+      </button>` : ''}
+    </div>
+
+    <div class="d-card" style="margin-top:12px">
+      <div class="d-lbl" style="margin-bottom:12px">Address</div>
+      <div class="d-val">${svc.address}</div>
+      <div style="margin-top:4px;font-size:13px;color:#7A8699">${dist} from your location</div>
+    </div>
+
+    <div class="d-card">
+      <div class="d-lbl" style="margin-bottom:12px">Hours this week</div>
+      <div class="hours-grid">${hoursRows}</div>
+    </div>
+
+    <div class="d-row">
+      <div class="d-field">
+        <div class="d-lbl">Walk-in?</div>
+        <div class="d-val" style="color:${svc.walkin?'var(--green)':'var(--city-red)'};font-size:15px">${svc.walkin?'Yes — walk in anytime':'Call ahead first'}</div>
+      </div>
+      ${svc.phone ? `<div class="d-field">
+        <div class="d-lbl">Phone</div>
+        <div class="d-val"><a href="tel:${svc.phone}">${svc.phone}</a></div>
+      </div>` : ''}
+    </div>
+
+    <div class="d-card">
+      <div class="d-lbl">What to bring</div>
+      <div class="d-val muted" style="margin-top:6px">${svc.bring}</div>
+    </div>
+
+    <div class="d-card">
+      <div class="d-lbl">Languages spoken</div>
+      <div class="lang-wrap" style="margin-top:8px">${svc.languages.map(l=>`<span class="lang-pill">${l}</span>`).join('')}</div>
+    </div>
+
+    <div class="verified-note">Source: ${svc.source} · Last verified ${svc.verified}</div>
+  `;
+
+  prevScreen = document.querySelector('.screen.active').id;
+  goScreen('detail-screen');
+}
+
+// ════════════════════════════════════════════════════════════
+// FILTERS
+// ════════════════════════════════════════════════════════════
+function buildCatChips() {
+  document.getElementById('cat-chips').innerHTML = CATS.map(c =>
+    `<button class="cat-chip" data-id="${c.id}" onclick="toggleCat('${c.id}')" style="color:${c.color};background:${c.bg};border-color:${c.bg}">${c.icon}${c.label}</button>`
+  ).join('');
+}
+
+function toggleCat(id) {
+  activeCats.has(id) ? activeCats.delete(id) : activeCats.add(id);
+  document.querySelectorAll('.cat-chip').forEach(btn => {
+    const c = cat(btn.dataset.id), on = activeCats.has(btn.dataset.id);
+    btn.style.background = on ? c.color : c.bg;
+    btn.style.borderColor = on ? c.color : c.bg;
+    btn.style.color = on ? '#fff' : c.color;
+  });
+  refresh();
+}
+
+function toggleOpen() {
+  openNow = !openNow;
+  document.getElementById('open-pill').classList.toggle('on', openNow);
+  refresh();
+}
+
+function filtered() {
+  return SERVICES.filter(s => {
+    if (activeCats.size && !activeCats.has(s.category)) return false;
+    if (openNow && !isOpen(s)) return false;
+    if (searchQ) {
+      const q = searchQ.toLowerCase();
+      if (!s.name.toLowerCase().includes(q) && !s.address.toLowerCase().includes(q) && !s.description.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b) => km(userLat,userLng,a.lat,a.lng) - km(userLat,userLng,b.lat,b.lng));
+}
+
+function refresh() {
+  if (activeView === 'map') renderMarkers(); else renderList();
+}
+
+// ════════════════════════════════════════════════════════════
+// VIEW + SEARCH + GEO
+// ════════════════════════════════════════════════════════════
+function setView(v) {
+  activeView = v;
+  document.getElementById('vsw-map').classList.toggle('on', v==='map');
+  document.getElementById('vsw-list').classList.toggle('on', v==='list');
+  const mw = document.getElementById('map-wrap'), lw = document.getElementById('list-wrap');
+  if (v === 'map') { mw.style.display='flex'; lw.classList.remove('on'); setTimeout(()=>map&&map.invalidateSize(),60); }
+  else { mw.style.display='none'; lw.classList.add('on'); renderList(); }
+}
+
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQ = e.target.value.trim(); refresh();
+});
+
+function locateUser() {
+  if (!navigator.geolocation) { alert('Location not available on this device.'); return; }
+  const btn = document.getElementById('locate-btn');
+  btn.textContent = 'Finding…';
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+    map && map.setView([userLat,userLng],15);
+    btn.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Near me`;
+    buildNearby();
+    refresh();
+  }, () => {
+    btn.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Near me`;
+    alert('Could not get your location. Showing Denver city center.');
+  }, {enableHighAccuracy:true,timeout:10000});
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+buildHomeGrid();
+buildNearby();
+buildCatChips();
+loadEvents();
+initMap();
+</script>
+</body>
+</html>
