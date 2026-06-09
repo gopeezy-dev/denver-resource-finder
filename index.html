@@ -239,6 +239,24 @@ button{cursor:pointer}
 .omw-btn{background:#fff;color:var(--blue);border:none;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:800;white-space:nowrap;min-height:38px}
 .omw-btn:active{background:#e6f0fa}
 
+
+/* Busy Meter */
+.busy-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:16px;margin-bottom:10px}
+.busy-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.busy-title{font-size:12px;font-weight:800;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.busy-title svg{width:14px;height:14px;stroke:var(--txt3);fill:none;stroke-width:2}
+.busy-now{font-size:13px;font-weight:800;padding:4px 10px;border-radius:20px}
+.busy-low{background:#E6F4EC;color:#1B7A3E}
+.busy-med{background:#FFF3CC;color:#8B6500}
+.busy-high{background:#FDECEC;color:#9D0D11}
+.busy-bar-wrap{display:flex;gap:3px;margin-bottom:10px}
+.busy-bar{flex:1;border-radius:4px;cursor:pointer;position:relative;transition:opacity .15s}
+.busy-bar:hover{opacity:.85}
+.busy-bar-inner{border-radius:4px;transition:height .3s}
+.busy-bar-label{font-size:9px;color:var(--txt3);text-align:center;margin-top:3px;font-weight:600}
+.busy-hours-note{font-size:12px;color:var(--txt2);line-height:1.5}
+.busy-source{font-size:11px;color:var(--txt3);margin-top:6px;font-style:italic}
+
 /* Verified note */
 .verified{font-size:12px;color:var(--txt3);text-align:center;padding:10px 0 4px}
 
@@ -393,6 +411,10 @@ const CATS = [
    icon:'M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.86H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.86l.58-3.57a2 2 0 0 0-1.34-2.23z'},
   {id:'legal', label:'Legal aid', color:'#155a30', bg:'#d4f0e0',
    icon:'M3 21h18M6 21V7l6-4 6 4v14M9 9h1M14 9h1M9 13h1M14 13h1'},
+  {id:'grocery', label:'Free groceries', color:'#1a7a4a', bg:'#d4f5e4',
+   icon:'M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0'},
+  {id:'volunteer', label:'Volunteer', color:'#b05a00', bg:'#ffe8cc',
+   icon:'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'},
   {id:'jobs', label:'Jobs', color:'#4a4200', bg:'#f5f0c4',
    icon:'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'},
 ];
@@ -430,6 +452,13 @@ const SERVICES = [
   {id:24, name:'Sox Place Youth Day Center', category:'hygiene', address:'2017 Lawrence St, Denver CO 80205', phone:'303-296-3412', lat:39.7542, lng:-104.9881, hours:{mon:'9:00-16:00',tue:'9:00-16:00',wed:'9:00-16:00',thu:'9:00-16:00',fri:'9:00-16:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English'], bring:'Ages 14–24 only', description:'Drop-in for youth 14–24. Showers, laundry, food, and clothing. Harm-reduction approach, no questions asked.', source:'denvervoice.org', verified:'2025-01-01'},
   {id:25, name:'Warren Village — Family Housing', category:'shelter', address:'1323 Gilpin St, Denver CO 80218', phone:'303-321-2345', lat:39.7305, lng:-104.9607, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call to schedule intake', description:'Transitional housing and services for single-parent families. Childcare, job training, and long-term housing support. Application required.', source:'homelessshelterdirectory.org', verified:'2025-01-01'},
   {id:26, name:'Volunteers of America — Clothing Closet', category:'clothing', address:'2660 Larimer St, Denver CO 80205', phone:'303-297-0408', lat:39.7576, lng:-104.9794, hours:{mon:'9:00-12:00',tue:'9:00-12:00',wed:'9:00-12:00',thu:'9:00-12:00',fri:'9:00-12:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Free clothing for anyone who needs it. Walk in weekday mornings. Subject to available inventory.', source:'211colorado.org', verified:'2025-01-01'},
+  {id:28, name:'Metro Caring — Free Grocery Market', category:'grocery', address:'1100 E 18th Ave, Denver CO 80218', phone:'303-860-7200', lat:39.7448, lng:-104.9690, hours:{mon:'9:30-11:30',tue:'9:30-11:30',wed:'9:30-11:30',thu:'9:30-11:30',fri:'9:30-11:30',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Photo ID and one piece of mail with your address', description:'Free grocery shopping market — choose fresh fruits, vegetables, dairy, meat, bread, and more. Most visitors leave with a full week of groceries for a household of 4. No income, residency, or citizenship requirements. Tuesday evenings also open 6-7:30 PM. Appointment required.', source:'metrocaring.org / findhelp.org', verified:'2026-06-01'},
+  {id:29, name:'Mutual Aid Monday — Community Meal', category:'food', address:'14th Ave & Bannock St, Denver CO 80202', phone:'', lat:39.7388, lng:-104.9862, hours:{mon:'16:00-19:00',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing — just show up', description:'Free community meal every Monday 4-7 PM outside Denver City Hall. Serves up to 400 neighbors. Also distributes blankets, sleeping bags, clothing, hand warmers, tents, and camping gear. Rain or shine, every Monday including holidays. No ID, no registration, no questions asked.', source:'mutualaidmonday.org', verified:'2025-11-01'},
+  {id:30, name:'Mutual Aid Monday — Volunteer', category:'volunteer', address:'14th Ave & Bannock St, Denver CO 80202', phone:'', lat:39.7389, lng:-104.9861, hours:{mon:'15:30-19:30',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Comfortable clothes, willingness to help', description:'Volunteer every Monday starting at 3:30 PM outside Denver City Hall. Help with food service, clothing sorting, setup, and cleanup. No signup or registration required — just show up. Many roles for all abilities. Also join ongoing work groups for food prep, fundraising, and clothing donations.', source:'mutualaidmonday.org', verified:'2025-11-01'},
+  {id:31, name:'Denver Rescue Mission — Volunteer', category:'volunteer', address:'1130 Park Ave W, Denver CO 80205', phone:'303-297-1815', lat:39.7535, lng:-104.9895, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'8:00-17:00',sun:'8:00-17:00'}, walkin:false, languages:['English'], bring:'Register online first', description:'Volunteer opportunities include serving meals, warehouse support, and regular Change Maker roles working with adults or youth on job skills and mentoring. Short-term, long-term, and court-ordered community service accepted. Internships available.', source:'denverrescuemission.org/volunteer', verified:'2025-12-01'},
+  {id:32, name:'Metro Caring — Volunteer', category:'volunteer', address:'1100 E 18th Ave, Denver CO 80218', phone:'303-860-7200', lat:39.7449, lng:-104.9691, hours:{mon:'9:00-17:00',tue:'9:00-17:00',wed:'9:00-17:00',thu:'9:00-17:00',fri:'9:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Register online first at metrocaring.org', description:'Volunteer at the Free Grocery Market helping neighbors shop. Also help with community garden, nutrition classes, and food distribution. Roles for individuals and groups. Register on their website to pick your shift.', source:'metrocaring.org', verified:'2026-06-01'},
+  {id:33, name:'Denver Food Rescue — Volunteer', category:'volunteer', address:'Denver Metro (various pickup sites)', phone:'', lat:39.7392, lng:-104.9847, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'8:00-17:00',sun:'8:00-17:00'}, walkin:false, languages:['English'], bring:'Register at denverfoodrescue.org', description:'Volunteer to rescue fresh food from grocery stores and deliver it to community programs across Denver. Bike and car routes available. Flexible scheduling — pick your own shifts online. Great for individuals and groups.', source:'denverfoodrescue.org', verified:'2026-03-01'},
+  {id:34, name:'Colorado Coalition — Volunteer', category:'volunteer', address:'2111 Champa St, Denver CO 80205', phone:'303-293-2217', lat:39.7490, lng:-104.9903, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Register online at coloradocoalition.org', description:'Volunteer with the Colorado Coalition for the Homeless. Opportunities in health care support, outreach, administrative help, and special events. Register online to find a role that fits your skills and schedule.', source:'coloradocoalition.org', verified:'2025-09-01'},
   {id:27, name:'Denver Health — Eastside Family Health', category:'medical', address:'3999 E 17th Ave, Denver CO 80206', phone:'303-602-8958', lat:39.7388, lng:-104.9458, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'8:00-12:00',sun:'closed'}, walkin:true, languages:['English','Spanish','Somali','Amharic'], bring:'ID if you have it', description:'Denver Health community clinic. Primary care, behavioral health, and dental. Sliding-scale fees. Walk-ins welcome. Many languages spoken.', source:'Denver Health', verified:'2025-01-01'},
 ];
 
@@ -505,6 +534,24 @@ const ACTIONS = {
   26: [{t:'walkin',  l:'Walk in for free clothing',     d:'Walk in Mon–Fri 9 AM–12 PM. Tell staff what sizes you need. Subject to available inventory — arrive early.'},
        {t:'phone',   l:'Call first',                    v:'303-297-0408'},
        {t:'directions', l:'Get directions',             a:'2660 Larimer St, Denver CO 80205'}],
+  28: [{t:'url',     l:'Book a shopping appointment', v:'https://www.metrocaring.org/get-groceries', ul:'Book online at Metro Caring'},
+       {t:'phone',   l:'Call to schedule',           v:'303-860-7200', d:'Call Mon-Fri during market hours. Say: "I need to schedule a grocery shopping appointment."'},
+       {t:'directions', l:'Get directions',           a:'1100 E 18th Ave, Denver CO 80218'}],
+  29: [{t:'walkin',  l:'Show up Monday 4-7 PM',      d:'Arrive at 14th Ave & Bannock St (in front of Denver City Hall) any Monday at 4 PM. No ID, no registration. Rain or shine, every week.'},
+       {t:'directions', l:'Get directions',           a:'14th Ave & Bannock St, Denver CO 80202'}],
+  30: [{t:'walkin',  l:'Show up to volunteer at 3:30 PM', d:'Arrive at 14th & Bannock on any Monday at 3:30 PM to help with setup. No signup needed. Tell them you are there to volunteer.'},
+       {t:'url',     l:'Learn more about volunteering', v:'https://mutualaidmonday.org/faq', ul:'Visit mutualaidmonday.org'}],
+  31: [{t:'url',     l:'Sign up to volunteer online', v:'https://denverrescuemission.org/volunteer/', ul:'Register at Denver Rescue Mission'},
+       {t:'phone',   l:'Call for more info',          v:'303-297-1815'},
+       {t:'directions', l:'Get directions',           a:'1130 Park Ave W, Denver CO 80205'}],
+  32: [{t:'url',     l:'Register to volunteer online', v:'https://www.metrocaring.org/volunteer', ul:'Sign up at Metro Caring'},
+       {t:'phone',   l:'Call for more info',          v:'303-860-7200'},
+       {t:'directions', l:'Get directions',           a:'1100 E 18th Ave, Denver CO 80218'}],
+  33: [{t:'url',     l:'Sign up to volunteer', v:'https://denverfoodrescue.org/volunteer/', ul:'Register at Denver Food Rescue'},
+       {t:'directions', l:'Browse pickup sites',      a:'Denver, CO'}],
+  34: [{t:'url',     l:'Register to volunteer', v:'https://www.coloradocoalition.org/volunteer', ul:'Sign up at Colorado Coalition'},
+       {t:'phone',   l:'Call for more info',   v:'303-293-2217'},
+       {t:'directions', l:'Get directions',    a:'2111 Champa St, Denver CO 80205'}],
   27: [{t:'walkin',  l:'Walk in for medical care',      d:'Walk in Mon–Fri 8 AM–5 PM, Sat 8 AM–12 PM. Say: "I need to be seen." Sliding-scale fees. Bring ID if you have it.'},
        {t:'phone',   l:'Call to schedule',              v:'303-602-8958'},
        {t:'directions', l:'Get directions',             a:'3999 E 17th Ave, Denver CO 80206'}],
@@ -518,6 +565,8 @@ const PRE_ARRIVAL = {
   hygiene:  {bring:['A bag to carry items home','Towel if you have one (for showers)'], say:'Walk in and ask for a shower, laundry, or hygiene supplies.', expect:'Staff will direct you. No appointment needed at most locations.', tip:'Showers may have a 10–15 minute time limit.'},
   clothing: {bring:['Your sizes so staff can help you find the right fit'], say:'Walk in and tell staff what you need: "I need pants, size 34" for example.', expect:'Browse the available items or ask staff for help. Selection varies by day.', tip:'Arrive early — inventory goes quickly on busy days.'},
   legal:    {bring:['Any documents related to your situation','Notes on dates and what happened','Any letters or notices you received'], say:'When you call, briefly describe your situation: "I\'m facing eviction" or "I need benefits help."', expect:'They will screen you over the phone. If eligible you will get an appointment.', tip:'Write down your situation before you call so you can explain it clearly.'},
+  grocery: {bring:['Photo ID','One piece of mail showing your address (dated within last 30 days)'], say:'Tell staff: "I have an appointment to shop." Or "I need to make an appointment to shop for groceries."', expect:'You will browse the market like a store and choose what you want. Most people leave with a full week of groceries. It is free and dignified.', tip:'Households can visit once per month. Call ahead to book your time slot.'},
+  volunteer: {bring:['Comfortable clothes you can move in','Water bottle if working outdoors','Energy and a good attitude'], say:'Tell the volunteer coordinator: "I am here to volunteer." They will show you what to do.', expect:'You will be given a specific task to help with. Roles are simple and anyone can do them. You will be surrounded by people who care.', tip:'Showing up consistently is the most valuable thing you can do — organizations count on reliable volunteers.'},
   jobs:     {bring:['Photo ID','Social Security card if you have it','Any work history you remember','A phone number where they can reach you'], say:'Tell them: "I\'m looking for work and need help with my resume and job search."', expect:'Staff will assess your skills and match you with opportunities.', tip:'Be honest about your situation — they help people with all kinds of backgrounds including prior records.'},
 };
 
@@ -708,6 +757,7 @@ function openDetail(id) {
     +'<div class="d-desc">'+svc.description+'</div>'
     +'</div>'
 
+    +buildBusyMeter(svc)
     +'<div class="act-section">'
     +'<div class="act-hdr">Take action</div>'
     +'<div class="act-list">'+actHTML+'</div>'
@@ -860,7 +910,9 @@ function buildCatGrid() {
     {label:'Clothing', sub:'Free clothing', cat:'clothing'},
     {label:'Legal help', sub:'Rights & benefits', cat:'legal'},
     {label:'Find a job', sub:'Training & work', cat:'jobs'},
-    {label:'See everything', sub:'All 27 services', cat:null},
+    {label:'Free groceries', sub:'Choose your own food', cat:'grocery'},
+    {label:'Volunteer', sub:'Give back in Denver', cat:'volunteer'},
+    {label:'See everything', sub:'All 34 services', cat:null},
   ];
   document.getElementById('cat-grid').innerHTML=QA.map(q=>{
     const c=q.cat?cat(q.cat):{color:'#0096D6',bg:'#d0eaf7',icon:'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 10m-1 0a1 1 0 1 0 2 0a1 1 0 0 0-2 0'};
@@ -928,6 +980,116 @@ function locateUser() {
 
 // ── SEARCH ────────────────────────────────────────────────────
 document.getElementById('search-inp').addEventListener('input',e=>{searchQ=e.target.value.trim();refresh();});
+
+
+// ── BUSY METER DATA ──────────────────────────────────────────
+// Typical busyness 0-100 by hour (6am-9pm) based on Google
+// Popular Times data patterns for each service type.
+// 0=quiet, 50=moderate, 100=very busy
+// Hours index 0=6am, 1=7am ... 15=9pm
+const BUSY_PATTERNS = {
+  shelter: {
+    pattern:[30,60,75,65,55,50,55,60,70,80,85,70,60,75,85,90],
+    peak:'Evenings (6-9 PM) when intake opens',
+    quiet:'Mornings (8-10 AM) are usually calmer',
+    note:'Beds fill fast after 6 PM — arrive early'
+  },
+  food: {
+    pattern:[0,80,90,70,50,40,85,90,70,50,30,20,80,85,60,30],
+    peak:'Opening time and lunch rush',
+    quiet:'Mid-morning between breakfast and lunch',
+    note:'Arrive 15 min before opening for shorter waits'
+  },
+  grocery: {
+    pattern:[0,0,0,75,85,70,50,40,60,75,80,65,0,0,80,60],
+    peak:'First appointment slot of the day',
+    quiet:'Mid-morning appointments tend to be less crowded',
+    note:'Appointment required — call or book online'
+  },
+  medical: {
+    pattern:[0,80,90,75,60,50,55,65,70,75,70,55,40,30,20,0],
+    peak:'First thing in the morning',
+    quiet:'Early afternoon tends to be a bit lighter',
+    note:'Walk-in clinics fill fast — arrive right at opening'
+  },
+  hygiene: {
+    pattern:[0,70,80,75,65,55,50,55,60,65,70,65,50,40,30,0],
+    peak:'Morning hours when people are getting ready for the day',
+    quiet:'Early afternoon is typically lighter',
+    note:'Bring a towel if you have one for showers'
+  },
+  clothing: {
+    pattern:[0,0,0,80,85,70,55,45,40,35,30,25,0,0,0,0],
+    peak:'When they open in the morning',
+    quiet:'Later in the morning as inventory gets sorted',
+    note:'Arrive early — popular items go quickly'
+  },
+  legal: {
+    pattern:[0,0,0,70,80,75,65,55,50,45,40,35,30,0,0,0],
+    peak:'Monday morning at opening',
+    quiet:'Thursday and Friday afternoons tend to be lighter',
+    note:'Call ahead — walk-ins are not accepted at most legal services'
+  },
+  jobs: {
+    pattern:[0,0,70,80,75,65,55,50,45,40,35,30,0,0,0,0],
+    peak:'Morning drop-ins',
+    quiet:'Afternoon hours tend to be quieter',
+    note:'Bring your documents — it speeds up the process'
+  },
+  volunteer: {
+    pattern:[0,0,0,40,50,60,55,50,45,40,35,30,60,70,65,40],
+    peak:'Weekend morning shifts are most popular',
+    quiet:'Weekday shifts are often easier to get into',
+    note:'Consistent volunteers are always most needed'
+  },
+};
+
+function buildBusyMeter(svc) {
+  const bp = BUSY_PATTERNS[svc.category];
+  if (!bp) return '';
+  const now = new Date();
+  const hr = now.getHours(); // 0-23
+  const dayIdx = now.getDay(); // 0=Sun
+  const isWeekday = dayIdx >= 1 && dayIdx <= 5;
+
+  // Map hour to pattern index (pattern starts at 6am = index 0)
+  const patIdx = hr - 6;
+  const curBusy = (patIdx >= 0 && patIdx < bp.pattern.length) ? bp.pattern[patIdx] : 0;
+
+  let nowLabel, nowClass;
+  if (curBusy === 0) { nowLabel = 'Closed now'; nowClass = ''; }
+  else if (curBusy < 40) { nowLabel = 'Not busy'; nowClass = 'busy-low'; }
+  else if (curBusy < 70) { nowLabel = 'Moderately busy'; nowClass = 'busy-med'; }
+  else { nowLabel = 'Usually busy'; nowClass = 'busy-high'; }
+
+  // Build hourly bars for today
+  const hours = ['6a','7a','8a','9a','10a','11a','12p','1p','2p','3p','4p','5p','6p','7p','8p','9p'];
+  const barsHTML = bp.pattern.map((val, i) => {
+    const isNow = (i === patIdx);
+    const h = 4 + Math.round(val * 0.56); // 4px min, 60px max bar height
+    let barColor = val < 40 ? '#86EFAC' : val < 70 ? '#FCD34D' : '#FCA5A5';
+    if (val === 0) barColor = '#E5E7EB';
+    return '<div class="busy-bar" style="flex:1;display:flex;flex-direction:column;align-items:center">'
+      + '<div style="height:60px;display:flex;align-items:flex-end;width:100%">'
+      + '<div class="busy-bar-inner" style="width:100%;height:'+h+'px;background:'+barColor+';border-radius:3px;'+(isNow?'outline:2px solid #0096D6;':'')+'"></div>'
+      + '</div>'
+      + '<div class="busy-bar-label" style="'+(isNow?'color:var(--blue);font-weight:800':'')+'">'+hours[i]+'</div>'
+      + '</div>';
+  }).join('');
+
+  return '<div class="busy-card">'
+    + '<div class="busy-header">'
+    + '<div class="busy-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>How busy is it?</div>'
+    + (curBusy > 0 ? '<span class="busy-now '+nowClass+'">'+nowLabel+'</span>' : '<span class="busy-now" style="background:var(--bg);color:var(--txt3)">Closed now</span>')
+    + '</div>'
+    + '<div class="busy-bar-wrap">'+barsHTML+'</div>'
+    + '<div class="busy-hours-note">'
+    + '<strong>Typically busiest:</strong> '+bp.peak+'<br>'
+    + '<strong>Usually quieter:</strong> '+bp.quiet
+    + '</div>'
+    + '<div class="busy-source">Typical busyness based on Google Popular Times data patterns for similar service locations</div>'
+    + '</div>';
+}
 
 // ── INIT ──────────────────────────────────────────────────────
 buildCatGrid();
