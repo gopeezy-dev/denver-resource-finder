@@ -292,6 +292,29 @@ button{cursor:pointer}
 .m-confirm span{font-size:14px;color:var(--txt2);line-height:1.6}
 .m-confirm-detail{background:var(--bg);border-radius:10px;padding:12px;margin:12px 0;text-align:left;font-size:14px;color:var(--txt2);line-height:1.6}
 .m-confirm-detail strong{color:var(--txt);display:block;margin-bottom:3px}
+
+.geo-card{background:#fff;border:1.5px solid var(--border,#d6dde5);border-radius:14px;padding:12px 14px;margin:0 0 10px;display:flex;gap:10px;align-items:center;font-size:14px;line-height:1.4}
+.geo-card .gt{flex:1;color:#1b2a38}.geo-card .gt strong{display:block;font-size:15px}
+.geo-btn{border:0;border-radius:10px;background:#0096D6;color:#fff;font-weight:800;font-size:14px;padding:10px 14px;min-height:44px;cursor:pointer}
+.geo-btn.off{background:#e5ebf0;color:#1b2a38}
+.winter-card{background:#e8f4fc;border:2px solid #0096D6;border-radius:14px;padding:12px 14px;margin:0 0 10px;font-size:14px;line-height:1.5;color:#10304a}
+.winter-card strong{font-size:15px;display:block;margin-bottom:2px}
+.winter-card a,.winter-card button{color:#005b8c;font-weight:800;background:none;border:0;padding:0;font-size:14px;text-decoration:underline;cursor:pointer}
+#alert-banner{position:fixed;left:10px;right:10px;top:10px;z-index:9999;background:#FDB913;color:#2a1f00;border-radius:14px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:none;font-size:15px;font-weight:700;line-height:1.4}
+#alert-banner button{margin-top:8px;margin-right:8px;border:0;border-radius:9px;padding:10px 14px;min-height:44px;font-weight:800;font-size:14px;background:#10304a;color:#fff;cursor:pointer}
+#alert-banner button.x{background:rgba(0,0,0,.12);color:#2a1f00}
+.gt-card .gt-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.gt-card .gt-b{flex:1;min-width:130px;text-align:center;text-decoration:none;border-radius:10px;padding:11px 10px;min-height:44px;font-weight:800;font-size:14px;background:#0096D6;color:#fff;border:0;cursor:pointer;display:inline-block}
+.gt-card .gt-b.alt{background:#e5ebf0;color:#10304a}
+
+.who-badge{display:inline-block;background:#FFF3CC;color:#6b4a00;border:1.5px solid #FDB913;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:800;margin-top:5px;line-height:1.3}
+.who-detail{background:#FFF3CC;border:2px solid #FDB913;color:#4a3300;border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:14px;line-height:1.5}
+.who-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.who-pill{border:2px solid #0096D6;background:#fff;color:#005b8c;border-radius:999px;padding:9px 13px;min-height:44px;font-weight:800;font-size:14px;cursor:pointer}
+.who-pill.on{background:#0096D6;color:#fff}
+.who-note,.hidden-note{font-size:13px;color:#4a5a68;margin-top:8px}
+.hidden-note{background:#e8f4fc;border-radius:10px;padding:8px 12px;margin:8px 12px}
+.who-note button,.hidden-note button{background:none;border:0;color:#005b8c;font-weight:800;text-decoration:underline;font-size:13px;cursor:pointer;padding:4px}
 </style>
 
 <script>
@@ -402,6 +425,7 @@ button{cursor:pointer}
 <body>
 
 <!-- HOME -->
+<div id="alert-banner" role="alert"></div>
 <div id="s-home" class="screen active">
   <div id="home-hdr">
     <div id="home-hdr-inner">
@@ -439,13 +463,18 @@ button{cursor:pointer}
       </div>
       <div class="mission-title">Roshni is free to use.<br>No account needed, no judgment.</div>
       <div class="mission-body">We show you what help is open right now, how close it is, and how to get there.</div>
-      <div class="mission-cta">Shelter. Food. Medical care. It\'s all here.</div>
+      <div class="mission-cta">Shelter. Food. Medical care. It is all here.</div>
     </div>
+
+    <div id="winter-slot"></div>
+    <div id="me-card" class="geo-card" style="display:block"></div>
+    <div id="loc-card" class="geo-card"></div>
+    <div id="alert-card" class="geo-card"></div>
 
     <div class="sec-lbl">What do you need?</div>
     <div id="cat-grid"></div>
 
-    <div class="sec-lbl">Closest to you right now</div>
+    <div class="sec-lbl">Open now, closest to you</div>
     <div id="nearby-strip"></div>
 
     <div class="sec-lbl">Coming up this week</div>
@@ -531,6 +560,10 @@ const CATS = [
    icon:'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'},
   {id:'jobs', label:'Jobs', color:'#4a4200', bg:'#f5f0c4',
    icon:'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'},
+  {id:'transit', label:'Free & cheap rides', color:'#005b8c', bg:'#d6ecf8',
+   icon:'M4 16V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10M4 16h16M4 16v2h3v-2M17 16v2h3v-2M4 11h16M8 20h.01M16 20h.01'},
+  {id:'crisis', label:'Crisis lines', color:'#8a1538', bg:'#fbe3ea',
+   icon:'M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z'},
 ];
 
 const svgIcon = (path, w, h, color) =>
@@ -540,16 +573,16 @@ const cat = id => CATS.find(c=>c.id===id)||CATS[0];
 
 // ── SERVICES ─────────────────────────────────────────────────
 const SERVICES = [
-  {id:1, name:'Denver Rescue Mission — Lawrence St', category:'shelter', address:'2222 Lawrence St, Denver CO 80205', phone:'303-297-1815', lat:39.7538, lng:-104.9884, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:true, languages:['English','Spanish'], bring:'Any ID you have (not required)', description:'Emergency shelter for men 18+. Beds available every night. Walk in and staff will add you to the bed queue at the front desk. Dinner included for overnight guests.', source:'Denver Rescue Mission', verified:'2025-11-22'},
+  {for:["man"], forLabel:"Men only (18+)", id:1, name:'Denver Rescue Mission — Lawrence St', category:'shelter', address:'2222 Lawrence St, Denver CO 80205', phone:'303-297-1815', lat:39.7538, lng:-104.9884, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:true, languages:['English','Spanish'], bring:'Any ID you have (not required)', description:"Front door for individual men who need shelter. Open 24 hours. This site is for MEN only. Women should go to Samaritan House (2301 Lawrence St). Youth 15-20 should go to Urban Peak. Families should call the Connection Center at 303-295-3366. Walk in and staff will add you to the bed queue. Dinner included for overnight guests.", source:'Denver Rescue Mission', verified:'2026-11-19'},
   {id:2, name:'Denver Rescue Mission — Emergency Meals', category:'food', address:'2222 Lawrence St, Denver CO 80205', phone:'303-294-0157', lat:39.7539, lng:-104.9883, hours:{mon:'7:00-13:30',tue:'7:00-13:30',wed:'7:00-13:30',thu:'7:00-13:30',fri:'7:00-13:30',sat:'12:00-13:30',sun:'7:00-13:30'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Free meals every day of the year. Breakfast 7–8:30 AM, lunch 12–1:30 PM. Open to anyone. No ID, no registration required.', source:'Denver Rescue Mission', verified:'2025-08-22'},
   {id:3, name:'Denver Rescue Mission — Outreach Center', category:'clothing', address:'5725 E 39th Ave, Denver CO 80207', phone:'303-297-1815', lat:39.7742, lng:-104.9388, hours:{mon:'10:30-15:30',tue:'10:30-15:30',wed:'10:30-15:30',thu:'10:30-15:30',fri:'10:30-15:30',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Free food pantry, hygiene products, and clothing for individuals and families. Walk in weekdays — no appointment needed.', source:'Denver Rescue Mission', verified:'2025-11-22'},
-  {id:4, name:'Samaritan House — Catholic Charities', category:'shelter', address:'2301 Lawrence St, Denver CO 80205', phone:'303-294-0241', lat:39.7545, lng:-104.9871, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:true, languages:['English','Spanish'], bring:'Arrive before 6 PM for intake', description:'Emergency shelter for women, families, and veterans. Open 24 hours. Lottery system for bed assignment nightly. Meals and case management on site.', source:'Catholic Charities', verified:'2026-02-01'},
-  {id:5, name:'Stout Street Health Center', category:'medical', address:'2130 Stout St, Denver CO 80205', phone:'303-293-2220', lat:39.7488, lng:-104.9923, hours:{mon:'7:00-16:00',tue:'7:00-16:00',wed:'7:00-19:00',thu:'7:00-16:00',fri:'7:00-16:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish','ASL'], bring:'Insurance if you have it — not required', description:'Colorado Coalition for the Homeless main health center. Medical, dental, vision, behavioral health, and pharmacy all in one building. No insurance needed. Serves 15,000+ patients/year.', source:'Colorado Coalition for the Homeless', verified:'2025-09-01'},
+  {for:["woman"], forLabel:"Women only", id:4, name:'Samaritan House — Catholic Charities', category:'shelter', address:'2301 Lawrence St, Denver CO 80205', phone:'303-294-0241', lat:39.7545, lng:-104.9871, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:true, languages:['English','Spanish'], bring:"Any ID you have (not required)", description:"Front door for individual women who need shelter. This site is for WOMEN only. Men should go to 2222 Lawrence St. Youth 15-20 should go to Urban Peak. Families should call the Connection Center at 303-295-3366. Open 24 hours. Meals and case management on site.", source:'Catholic Charities', verified:'2026-11-19'},
+  {id:5, name:'Stout Street Health Center', category:'medical', address:'2130 Stout St, Denver CO 80205', phone:'303-293-2220', lat:39.7488, lng:-104.9923, hours:{mon:'7:00-16:00',tue:'7:00-16:00',wed:'9:00-18:00',thu:'7:00-16:00',fri:'7:00-16:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish','ASL'], bring:'Insurance if you have it — not required', description:'Colorado Coalition for the Homeless main health center. Medical, dental, vision, behavioral health, and pharmacy all in one building. No insurance needed. Serves 15,000+ patients/year.', source:'Colorado Coalition for the Homeless', verified:'2026-11-19'},
   {id:6, name:'CCH Dental Clinic', category:'medical', address:'2130 Stout St, Denver CO 80205', phone:'303-293-2220', lat:39.7487, lng:-104.9924, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Insurance if you have it', description:'Free emergency and restorative dental care for people experiencing homelessness. No insurance required. Call to schedule.', source:'Colorado Coalition for the Homeless', verified:'2025-09-01'},
   {id:7, name:'Colorado Coalition for the Homeless', category:'shelter', address:'2111 Champa St, Denver CO 80205', phone:'303-293-2217', lat:39.7491, lng:-104.9901, hours:{mon:'7:30-17:00',tue:'7:30-17:00',wed:'7:30-17:00',thu:'7:30-17:00',fri:'7:30-17:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Photo ID if available', description:'Housing intake, case management, and referrals. For housing specifically call 303-312-9679. Walk in for general services.', source:'Colorado Coalition for the Homeless', verified:'2025-09-01'},
-  {id:8, name:'Urban Peak Youth Shelter', category:'shelter', address:'1630 S Acoma St, Denver CO 80223', phone:'303-974-2908', lat:39.6988, lng:-104.9898, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:false, languages:['English','Spanish'], bring:'Call before you come', description:'Safe shelter for unaccompanied youth ages 15–21. You must call before arriving to check bed availability. Gender-inclusive.', source:'findhelp.org', verified:'2025-04-01'},
-  {id:9, name:'The Gathering Place', category:'shelter', address:'1535 High St, Denver CO 80218', phone:'303-321-4198', lat:39.7310, lng:-104.9596, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Day shelter for women and children only. Meals, showers, laundry, and case management available. Safe and welcoming.', source:'denvervoice.org', verified:'2025-01-01'},
-  {id:10, name:'St. Francis Center', category:'shelter', address:'2323 Curtis St, Denver CO 80205', phone:'303-297-1576', lat:39.7507, lng:-104.9875, hours:{mon:'6:30-14:00',tue:'6:30-14:00',wed:'6:30-14:00',thu:'6:30-14:00',fri:'6:30-14:00',sat:'6:30-14:00',sun:'6:30-14:00'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Drop-in day center open 365 days a year. Meals, showers, laundry, clothing, and case management. No appointment needed.', source:'denverdonate.com', verified:'2025-01-01'},
+  {for:["youth"], forLabel:"Youth 15-20 for overnight shelter", id:8, name:'Urban Peak Youth Shelter', category:'shelter', address:'1630 S Acoma St, Denver CO 80223', phone:'303-974-2908', lat:39.6988, lng:-104.9898, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, hoursUnknown:true, walkin:true, languages:['English','Spanish'], bring:'Call before you come', description:"Front door for youth ages 15-20 who need shelter tonight. Call 303-974-2928 or go to 1630 S Acoma St. Urban Peak serves ages 14-24 for food, showers, clothing, case workers, ID and birth certificate help, GED help and housing. Call for hours.", source:'findhelp.org', verified:'2026-11-19'},
+  {for:["woman", "trans", "family"], forLabel:"Women, their children, and transgender people", id:9, name:'The Gathering Place', category:'shelter', address:'1535 High St, Denver CO 80218', phone:'303-321-4198', lat:39.7310, lng:-104.9596, hours:{mon:'8:30-17:00',tue:'8:30-13:30',wed:'8:30-17:00',thu:'8:30-17:00',fri:'8:30-17:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:"Daytime drop-in center for women, their children, and transgender people. Meals, computer lab, phones, food bank, clothing, art programs, GED tutoring and referrals. Open Monday, Wednesday, Thursday, Friday 8:30 AM to 5 PM. Tuesday 8:30 AM to 1:30 PM. Closed weekends.", source:'denvervoice.org', verified:'2026-11-19'},
+  {id:10, name:'St. Francis Center', category:'shelter', address:'2323 Curtis St, Denver CO 80205', phone:'303-297-1576', lat:39.7507, lng:-104.9875, hours:{mon:'6:00-18:00',tue:'6:00-18:00',wed:'6:00-18:00',thu:'6:00-18:00',fri:'6:00-18:00',sat:'6:00-18:00',sun:'6:00-18:00'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Drop-in day center open 365 days a year. Meals, showers, laundry, clothing, and case management. No appointment needed.', source:'denverdonate.com', verified:'2026-11-19'},
   {id:11, name:'Denver Human Services', category:'legal', address:'1200 Federal Blvd, Denver CO 80204', phone:'720-944-3666', lat:39.7323, lng:-105.0298, hours:{mon:'7:30-17:00',tue:'7:30-17:00',wed:'7:30-17:00',thu:'7:30-17:00',fri:'7:30-17:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Photo ID if you have it', description:'City office for SNAP food benefits, Medicaid, housing assistance, and benefits help. Staff will help you apply.', source:'denvergov.org', verified:'2025-01-01'},
   {id:12, name:'Colorado Legal Services', category:'legal', address:'1905 Sherman St #400, Denver CO 80203', phone:'303-837-1313', lat:39.7409, lng:-104.9831, hours:{mon:'9:00-17:00',tue:'9:00-17:00',wed:'9:00-17:00',thu:'9:00-17:00',fri:'9:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Documents related to your legal issue', description:'Free legal help for low-income individuals. Covers housing, benefits, and family law. Call first — they screen you over the phone.', source:'Colorado Legal Services', verified:'2025-01-01'},
   {id:13, name:'Bayaud Enterprises — Workforce', category:'jobs', address:'333 W Bayaud Ave, Denver CO 80223', phone:'303-830-6885', lat:39.7154, lng:-104.9905, hours:{mon:'8:00-16:30',tue:'8:00-16:30',wed:'8:00-16:30',thu:'8:00-16:30',fri:'8:00-16:30',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Photo ID, Social Security card if possible', description:'Job training, resume help, and subsidized employment. Walk in for help re-entering the workforce.', source:'denvervoice.org', verified:'2025-01-01'},
@@ -559,12 +592,12 @@ const SERVICES = [
   {id:17, name:'Denver Rescue Mission — Hygiene Products', category:'hygiene', address:'5725 E 39th Ave, Denver CO 80207', phone:'303-297-1815', lat:39.7743, lng:-104.9389, hours:{mon:'10:30-15:30',tue:'10:30-15:30',wed:'10:30-15:30',thu:'10:30-15:30',fri:'10:30-15:30',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Free hygiene products and personal care items. Walk in weekdays — no appointment or ID needed.', source:'Denver Rescue Mission', verified:'2025-11-22'},
   {id:18, name:'CCH Employment & Job Training', category:'jobs', address:'2111 Champa St, Denver CO 80205', phone:'303-293-2217', lat:39.7492, lng:-104.9902, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call to schedule intake', description:'Job training, vocational skills, and employment placement for people experiencing or at risk of homelessness.', source:'coloradocoalition.org', verified:'2025-09-01'},
   {id:19, name:'Food Not Bombs Denver', category:'food', address:'22nd St & Curtis St, Denver CO 80205', phone:'', lat:39.7511, lng:-104.9836, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'16:00-17:30'}, walkin:true, languages:['English'], bring:'Nothing — just show up', description:'Free community vegetarian meal every Sunday at 4 PM. Outdoors at 22nd & Curtis. No ID, no questions asked.', source:'denvervoice.org', verified:'2025-01-01'},
-  {id:20, name:'The Gathering Place — Meals', category:'food', address:'1535 High St, Denver CO 80218', phone:'303-321-4198', lat:39.7311, lng:-104.9597, hours:{mon:'8:00-15:00',tue:'8:00-15:00',wed:'8:00-15:00',thu:'8:00-15:00',fri:'8:00-15:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Women and children only', description:'Free hot breakfast and lunch for women and children. Served Monday–Friday.', source:'denverdonate.com', verified:'2025-01-01'},
+  {for:["woman", "trans", "family"], forLabel:"Women, their children, and transgender people", id:20, name:'The Gathering Place — Meals', category:'food', address:'1535 High St, Denver CO 80218', phone:'303-321-4198', lat:39.7311, lng:-104.9597, hours:{mon:'8:00-15:00',tue:'8:00-15:00',wed:'8:00-15:00',thu:'8:00-15:00',fri:'8:00-15:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Women and children only', description:'Free hot breakfast and lunch for women and children. Served Monday–Friday.', source:'denverdonate.com', verified:'2025-01-01'},
   {id:21, name:'CCH Mental Health Services', category:'medical', address:'2130 Stout St, Denver CO 80205', phone:'303-293-2220', lat:39.7489, lng:-104.9922, hours:{mon:'7:30-16:00',tue:'7:30-16:00',wed:'11:00-19:00',thu:'7:30-16:00',fri:'7:30-16:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Crisis walk-ins always welcome', description:'Behavioral health, psychiatry, counseling, and substance use treatment. Crisis walk-ins accepted any time during open hours. No appointment needed for crisis.', source:'coloradocoalition.org', verified:'2025-09-01'},
-  {id:22, name:'Denver Rescue Mission — 48th Ave Center', category:'shelter', address:'4275 E 48th Ave, Denver CO 80216', phone:'303-297-1815', lat:39.7880, lng:-104.9400, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:false, languages:['English','Spanish'], bring:'Sign up at 2222 Lawrence St first', description:'24/7 overflow shelter for men in partnership with the City of Denver. Three meals a day included. You must go to 2222 Lawrence St first — staff will assign your bed and arrange transportation.', source:'Denver Rescue Mission', verified:'2025-11-22'},
-  {id:23, name:'Urban Peak — The Spot (Youth Day)', category:'food', address:'2100 Stout St, Denver CO 80205', phone:'303-974-2928', lat:39.7489, lng:-104.9930, hours:{mon:'8:00-20:00',tue:'8:00-20:00',wed:'8:00-20:00',thu:'8:00-20:00',fri:'8:00-20:00',sat:'10:00-17:00',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Ages 15–24 only', description:'Drop-in day center for youth 15–24. Meals, showers, laundry, clothing, Wi-Fi, and case management — all free.', source:'Urban Peak', verified:'2025-01-01'},
-  {id:24, name:'Sox Place Youth Day Center', category:'hygiene', address:'2017 Lawrence St, Denver CO 80205', phone:'303-296-3412', lat:39.7542, lng:-104.9881, hours:{mon:'9:00-16:00',tue:'9:00-16:00',wed:'9:00-16:00',thu:'9:00-16:00',fri:'9:00-16:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English'], bring:'Ages 14–24 only', description:'Drop-in for youth 14–24. Showers, laundry, food, and clothing. Harm-reduction approach, no questions asked.', source:'denvervoice.org', verified:'2025-01-01'},
-  {id:25, name:'Warren Village — Family Housing', category:'shelter', address:'1323 Gilpin St, Denver CO 80218', phone:'303-321-2345', lat:39.7305, lng:-104.9607, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call to schedule intake', description:'Transitional housing and services for single-parent families. Childcare, job training, and long-term housing support. Application required.', source:'homelessshelterdirectory.org', verified:'2025-01-01'},
+  {for:["man"], forLabel:"Men only. Go to 2222 Lawrence St first", id:22, name:'Denver Rescue Mission — 48th Ave Center', category:'shelter', address:'4275 E 48th Ave, Denver CO 80216', phone:'303-297-1815', lat:39.7880, lng:-104.9400, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:false, languages:['English','Spanish'], bring:'Sign up at 2222 Lawrence St first', description:'24/7 overflow shelter for men in partnership with the City of Denver. Three meals a day included. You must go to 2222 Lawrence St first — staff will assign your bed and arrange transportation.', source:'Denver Rescue Mission', verified:'2025-11-22'},
+  {for:["youth"], forLabel:"Youth", id:23, name:'Urban Peak — The Spot (Youth Day)', category:'food', address:'2100 Stout St, Denver CO 80205', phone:'303-974-2928', lat:39.7489, lng:-104.9930, hours:{mon:'8:00-11:00',tue:'8:00-11:00',wed:'8:00-11:00',thu:'8:00-11:00',fri:'8:00-11:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Ages 15–24 only', description:"Youth drop-in at 2100 Stout St, Monday to Friday, 8 to 11 AM. Meals, showers, laundry, clothing and case workers. If you are 15-20 and need a bed tonight, call 303-974-2928.", source:'Urban Peak', verified:'2026-11-19'},
+  {for:["youth"], forLabel:"Youth 12-30", id:24, name:'Sox Place Youth Day Center', category:'hygiene', address:'2017 Larimer St, Denver CO 80205', phone:'303-296-3412', lat:39.7542, lng:-104.9881, hours:{mon:'closed',tue:'12:00-16:00',wed:'12:00-16:00',thu:'12:00-16:00',fri:'12:00-16:00',sat:'11:00-14:00',sun:'closed'}, walkin:true, languages:['English'], bring:"Ages 12-30", description:"Daytime drop-in shelter for youth ages 12-30. Meals, socks, clothing bank, hygiene supplies, internet, mentoring, crisis help and referrals. Tuesday to Friday 12 to 4 PM. Saturday 11 AM to 2 PM. Closed Sunday and Monday.", source:'denvervoice.org', verified:'2026-11-19'},
+  {for:["family"], forLabel:"Single-parent families (application)", id:25, name:'Warren Village — Family Housing', category:'shelter', address:'1323 Gilpin St, Denver CO 80218', phone:'303-321-2345', lat:39.7305, lng:-104.9607, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call to schedule intake', description:'Transitional housing and services for single-parent families. Childcare, job training, and long-term housing support. Application required.', source:'homelessshelterdirectory.org', verified:'2025-01-01'},
   {id:26, name:'Volunteers of America — Clothing Closet', category:'clothing', address:'2660 Larimer St, Denver CO 80205', phone:'303-297-0408', lat:39.7576, lng:-104.9794, hours:{mon:'9:00-12:00',tue:'9:00-12:00',wed:'9:00-12:00',thu:'9:00-12:00',fri:'9:00-12:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing required', description:'Free clothing for anyone who needs it. Walk in weekday mornings. Subject to available inventory.', source:'211colorado.org', verified:'2025-01-01'},
   {id:28, name:'Metro Caring — Free Grocery Market', category:'grocery', address:'1100 E 18th Ave, Denver CO 80218', phone:'303-860-7200', lat:39.7448, lng:-104.9690, hours:{mon:'9:30-11:30',tue:'9:30-11:30',wed:'9:30-11:30',thu:'9:30-11:30',fri:'9:30-11:30',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Photo ID and one piece of mail with your address', description:'Free grocery shopping market — choose fresh fruits, vegetables, dairy, meat, bread, and more. Most visitors leave with a full week of groceries for a household of 4. No income, residency, or citizenship requirements. Tuesday evenings also open 6-7:30 PM. Appointment required.', source:'metrocaring.org / findhelp.org', verified:'2026-06-01'},
   {id:29, name:'Mutual Aid Monday — Community Meal', category:'food', address:'14th Ave & Bannock St, Denver CO 80202', phone:'', lat:39.7388, lng:-104.9862, hours:{mon:'16:00-19:00',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'Nothing — just show up', description:'Free community meal every Monday 4-7 PM outside Denver City Hall. Serves up to 400 neighbors. Also distributes blankets, sleeping bags, clothing, hand warmers, tents, and camping gear. Rain or shine, every Monday including holidays. No ID, no registration, no questions asked. NOTE: This service runs on Mondays only.', source:'mutualaidmonday.org', verified:'2025-11-01'},
@@ -592,6 +625,45 @@ const SERVICES = [
   {id:41,  name:'Denver Health — Lowry Family Health Center', category:'medical', address:'1001 Yosemite St, Denver CO 80220', phone:'303-602-4545', lat:39.7228, lng:-104.9017, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'ID if you have it — not required', description:'Denver Health clinic in the Lowry neighborhood serving southeast Denver. Primary care for all ages, pharmacy, and lab. Sliding-scale fees — no insurance required. Walk-ins accepted.', source:'Denver Health / CU Anschutz', verified:'2026-04-01'},
   {id:42,  name:'Denver Health — Rose Andom Health Center', category:'medical', address:'1330 Fox St, Denver CO 80204', phone:'303-436-4949', lat:39.7372, lng:-104.9975, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:true, languages:['English','Spanish'], bring:'ID if you have it — not required', description:'Denver Health clinic in Lincoln Park. Primary care, behavioral health, dental, and pharmacy. Sliding-scale fees — no insurance required. Serves individuals and families in the surrounding community.', source:'Denver Health / Colorado DPHE', verified:'2026-04-01'},
   {id:43,  name:'Denver Health — Primary Care Center (Main Campus)', category:'medical', address:'660 N Bannock St, Denver CO 80204', phone:'303-436-4949', lat:39.7268, lng:-104.9900, hours:{mon:'8:00-17:00',tue:'8:00-17:00',wed:'8:00-17:00',thu:'8:00-17:00',fri:'8:00-17:00',sat:'closed',sun:'closed'}, walkin:false, languages:['English','Spanish'], bring:'Call first for new patient appointment', description:'Denver Health main campus primary care center. Comprehensive primary care, specialty services, pharmacy, and labs. New patients call 303-436-4949 or book online. Sliding-scale fees — no insurance required.', source:'Denver Health', verified:'2026-04-01'},
+  {"id": 50, "name": "RTD Special Discount Office", "category": "transit", "address": "1660 Blake St, Denver CO 80202", "phone": "303-299-2668", "lat": 39.7506, "lng": -104.9993, "hours": {"mon": "9:00-15:00", "tue": "9:00-15:00", "wed": "9:00-15:00", "thu": "9:00-15:00", "fri": "closed", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English", "Spanish"], "bring": "A photo ID, plus proof of age, disability or income (see description)", "description": "In-person help to get an RTD discount card. Open Monday to Thursday, 9 AM to 3 PM (closed 12 to 1 for lunch). Discount fares: 3-hour pass $1.35, day pass $2.70, monthly pass $27. Bring ID and proof you qualify.", "source": "rtd-denver.com/fares-passes/discount-fares", "verified": "2026-11-18"},
+  {"id": 51, "name": "RTD LiVE — Half-Price Fares (Low Income)", "category": "transit", "address": "Apply online at PEAK (CO benefits site)", "phone": "303-299-2668", "lat": 39.7392, "lng": -104.9903, "hours": {"mon": "0:00-23:59", "tue": "0:00-23:59", "wed": "0:00-23:59", "thu": "0:00-23:59", "fri": "0:00-23:59", "sat": "0:00-23:59", "sun": "0:00-23:59"}, "walkin": false, "languages": ["English"], "bring": "A phone with a camera (you will upload a clear photo of yourself)", "description": "Half-price RTD bus and train fares if you are 20 or older and your household income is at or below 250% of the federal poverty level. Apply online through PEAK. The Special Discount Office can help you apply in person.", "source": "rtd-denver.com/fares-passes/discount-fares", "verified": "2026-11-18"},
+  {"id": 52, "name": "RTD — Free Rides for Youth (19 and Under)", "category": "transit", "address": "Any RTD bus or train", "phone": "303-299-2668", "lat": 39.7392, "lng": -104.9903, "hours": {"mon": "0:00-23:59", "tue": "0:00-23:59", "wed": "0:00-23:59", "thu": "0:00-23:59", "fri": "0:00-23:59", "sat": "0:00-23:59", "sun": "0:00-23:59"}, "walkin": true, "languages": ["English"], "bring": "School ID or any photo ID showing your age", "description": "Riders 19 and younger ride all RTD buses and trains free. Just show a school ID or photo ID with your age when you board or if a fare inspector asks. Seniors 65+ and people with a qualifying disability get 50% off.", "source": "rtd-denver.com/fares-passes/discount-fares", "verified": "2026-11-18"},
+  {"id": 53, "name": "211 Colorado — Help Line", "category": "crisis", "address": "Call or text from anywhere", "phone": "211", "lat": 39.7392, "lng": -104.9903, "hours": {"mon": "0:00-23:59", "tue": "0:00-23:59", "wed": "0:00-23:59", "thu": "0:00-23:59", "fri": "0:00-23:59", "sat": "0:00-23:59", "sun": "0:00-23:59"}, "walkin": true, "languages": ["English", "Spanish"], "bring": "Nothing. Just call.", "description": "Free help finding shelter, food, rent help, and ride programs. Ask about free medical rides and where cold-weather shelter is open tonight. Service in English and Spanish.", "source": "denvervoice.org resource list", "verified": "2026-11-18"},
+  {"id": 54, "name": "988 Suicide & Crisis Lifeline", "category": "crisis", "address": "Call or text 988 from anywhere", "phone": "988", "lat": 39.7392, "lng": -104.9903, "hours": {"mon": "0:00-23:59", "tue": "0:00-23:59", "wed": "0:00-23:59", "thu": "0:00-23:59", "fri": "0:00-23:59", "sat": "0:00-23:59", "sun": "0:00-23:59"}, "walkin": true, "languages": ["English"], "bring": "Nothing. Just call or text.", "description": "Free, private support any time, day or night, if you are in emotional distress or thinking about suicide. Call or text 988.", "source": "988lifeline.org", "verified": "2026-11-18"},
+  {"id": 55, "name": "National Domestic Violence Hotline", "category": "crisis", "address": "Call from anywhere", "phone": "800-799-7233", "lat": 39.7392, "lng": -104.9903, "hours": {"mon": "0:00-23:59", "tue": "0:00-23:59", "wed": "0:00-23:59", "thu": "0:00-23:59", "fri": "0:00-23:59", "sat": "0:00-23:59", "sun": "0:00-23:59"}, "walkin": true, "languages": ["English", "Spanish"], "bring": "Nothing. Just call.", "description": "Private, free support 24 hours a day if you are afraid of a partner or family member. English and Spanish. TDD line: 800-243-7889.", "source": "thehotline.org", "verified": "2026-11-18"},
+  {"id": 56, "name": "The Trevor Project (LGBTQ+ Youth)", "category": "crisis", "address": "Call from anywhere", "phone": "866-488-7386", "lat": 39.7392, "lng": -104.9903, "hours": {"mon": "0:00-23:59", "tue": "0:00-23:59", "wed": "0:00-23:59", "thu": "0:00-23:59", "fri": "0:00-23:59", "sat": "0:00-23:59", "sun": "0:00-23:59"}, "walkin": true, "languages": ["English"], "bring": "Nothing. Just call.", "description": "Free crisis support for LGBTQ+ young people.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 57, "name": "Harm Reduction Action Center", "category": "medical", "address": "231 E Colfax Ave, Denver CO 80203", "phone": "303-572-7800", "lat": 39.74, "lng": -104.9835, "hours": {"mon": "9:00-12:00", "tue": "9:00-12:00", "wed": "9:00-12:00", "thu": "9:00-12:00", "fri": "9:00-12:00", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Clean syringes and safe disposal, HIV, Hep C and STI testing, and health classes. Services are for people who inject drugs. Open Monday to Friday, 9 AM to noon.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 58, "name": "Inner City Health Center", "category": "medical", "address": "3800 York St, Denver CO 80205", "phone": "303-296-1767", "lat": 39.7692, "lng": -104.9605, "hours": {"mon": "8:00-14:00", "tue": "8:00-14:00", "wed": "8:00-14:00", "thu": "8:00-14:00", "fri": "8:00-14:00", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English", "Spanish"], "bring": "Any ID you have (not required)", "description": "Walk-in care and dental. Emergency walk-in line 303-296-1767. Dental line 303-296-4873. Open Monday to Friday, 8 AM to 2 PM.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 59, "name": "Haven of Hope — Showers, Laundry & Lunch", "category": "hygiene", "address": "1101 W 7th Ave, Denver CO 80204", "phone": "303-607-0855", "lat": 39.7265, "lng": -104.9946, "hours": {"mon": "7:00-13:00", "tue": "7:00-13:00", "wed": "7:00-13:00", "thu": "7:00-13:00", "fri": "7:00-13:00", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "A towel if you have one", "description": "Private showers and bathrooms, laundry, and a free lunch. Breakfast about 8 AM, lunch about 11 AM. Monday to Friday, 7 AM to 1 PM.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 60, "name": "Open Door Ministries — Day Space", "category": "hygiene", "address": "1567 Marion St, Denver CO 80218", "phone": "303-830-2201", "lat": 39.7424, "lng": -104.9709, "hours": {"mon": "7:00-17:30", "tue": "7:00-17:30", "wed": "7:00-17:30", "thu": "7:00-17:30", "fri": "7:00-17:30", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Bathrooms, coffee and tea, snacks, Wi-Fi and referrals. Monday to Friday, 7 AM to 5:30 PM. Saturday breakfast at 8 AM (call to confirm).", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 61, "name": "CitySquare Denver — IDs, Mail & Lockers", "category": "jobs", "address": "2575 S Broadway, Denver CO 80210", "phone": "303-783-3777", "lat": 39.6693, "lng": -104.9877, "hours": {"mon": "10:00-14:00", "tue": "10:00-14:00", "wed": "10:00-14:00", "thu": "10:00-14:00", "fri": "closed", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Help getting an ID or birth certificate, a mailing address, lockers, and job help. Monday to Thursday, 10 AM to 2 PM. Food pantry Tuesdays, 10 AM to 6 PM.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 62, "name": "Westside One-Stop Career Center", "category": "jobs", "address": "1200 Federal Blvd, Denver CO 80204", "phone": "", "lat": 39.7358, "lng": -105.025, "hours": {"mon": "7:30-16:30", "tue": "7:30-16:30", "wed": "7:30-16:30", "thu": "7:30-16:30", "fri": "7:30-16:30", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Any ID you have", "description": "Job search help, resume prep, job matching, free computers, phones and copier. Monday to Friday, 7:30 AM to 4:30 PM.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {for:["senior"], forLabel:"Age 60+", "id": 63, "name": "Senior Support Services (Age 60+)", "category": "food", "address": "846 E 18th Ave, Denver CO 80218", "phone": "", "lat": 39.744, "lng": -104.978, "hours": {"mon": "7:00-19:00", "tue": "7:00-19:00", "wed": "7:00-19:00", "thu": "7:00-19:00", "fri": "7:00-19:00", "sat": "closed", "sun": "11:00-16:00"}, "walkin": true, "languages": ["English"], "bring": "Must be 60 or older", "description": "Three meals, a TV room, bus tokens, and health outreach for adults 60 and older. Monday to Friday 7 AM to 7 PM, Sunday 11 AM to 4 PM.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 64, "name": "Denver Inner City Parish — Food Bank", "category": "grocery", "address": "1212 Mariposa St, Denver CO 80204", "phone": "303-322-5733", "lat": 39.7342, "lng": -105.003, "hours": {"mon": "closed", "tue": "closed", "wed": "10:00-12:00", "thu": "10:00-12:00", "fri": "10:00-12:00", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Free food bank open to the public Wednesday to Friday, 10 AM to noon. Dining center for adults 60+ Wednesday to Saturday, 9 AM to noon (tickets at 9 AM).", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 65, "name": "Capitol Hill Community Services — Hot Meal", "category": "food", "address": "1820 Broadway, Denver CO 80202", "phone": "", "lat": 39.7455, "lng": -104.9877, "hours": {"mon": "11:45-12:15", "tue": "11:45-12:15", "wed": "closed", "thu": "11:45-12:15", "fri": "11:45-12:15", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Free hot meal outside Trinity United Methodist. Monday, Tuesday, Thursday and Friday, 11:45 AM to 12:15 PM. The meal window is short, so arrive early.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 66, "name": "Holy Ghost Church — Sandwiches", "category": "food", "address": "1900 California St, Denver CO 80202", "phone": "", "lat": 39.748, "lng": -104.9886, "hours": {"mon": "10:00-10:30", "tue": "10:00-10:30", "wed": "10:00-10:30", "thu": "10:00-10:30", "fri": "10:00-10:30", "sat": "10:00-10:30", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Free sandwiches Monday to Saturday, 10 AM to 10:30 AM. The church can also help replace a lost ID or birth certificate.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 67, "name": "St. Elizabeth's — Daily Food & Coffee", "category": "food", "address": "Speer Blvd & Arapahoe St (Auraria Campus), Denver CO 80204", "phone": "", "lat": 39.7437, "lng": -105.0068, "hours": {"mon": "11:00-12:00", "tue": "11:00-12:00", "wed": "11:00-12:00", "thu": "11:00-12:00", "fri": "11:00-12:00", "sat": "11:00-12:00", "sun": "11:00-12:00"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Food and coffee every day starting at 11 AM. Hours listed are the start time, so go right at 11.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 68, "name": "Christ in the City — Lunch in the Park", "category": "food", "address": "Benedict Fountain Park, Tremont Pl & 22nd St, Denver CO 80205", "phone": "", "lat": 39.7488, "lng": -104.993, "hours": {"mon": "closed", "tue": "closed", "wed": "12:00-13:00", "thu": "closed", "fri": "closed", "sat": "closed", "sun": "closed"}, "walkin": true, "languages": ["English"], "bring": "Nothing required", "description": "Free lunch in the park every Wednesday, 12 to 1 PM. Wednesdays only.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {"id": 69, "name": "Volunteers of America — Meals & Food Bank", "category": "food", "address": "2877 Lawrence St, Denver CO 80205", "phone": "303-297-0408", "lat": 39.7585, "lng": -104.9775, "hours": {"mon": "8:00-17:30", "tue": "8:00-17:30", "wed": "8:00-17:30", "thu": "8:00-17:30", "fri": "12:00-13:00", "sat": "closed", "sun": "13:00-14:00"}, "walkin": true, "languages": ["English", "Spanish"], "bring": "Nothing required", "description": "Meals Monday to Thursday at about 8 AM, 11:30 AM and 5 PM. Friday lunch at noon. Sunday lunch at 1 PM. Food and clothing bank Monday to Thursday, 9:30 AM to 4 PM.", "source": "Denver VOICE resource list", "verified": "2026-11-18"},
+  {id:70, name:"Connection Center — Shelter for Families", category:"shelter", address:"Call first. They will tell you where to go", phone:"303-295-3366", lat:39.7392, lng:-104.9903, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:false, languages:["English"], bring:"Call before you go", description:"Families with children who need shelter should call the Connection Center. They will tell you where to go. Individual men, women and youth should use their own front door instead (see the tag on each shelter).", source:"Denver VOICE resource list (printed)", verified:"2026-11-19", for:["family"], forLabel:"Families with children. Call first", hoursUnknown:true},
+  {id:71, name:"Denver Rescue Mission — Meals (Park Ave West)", category:"food", address:"1130 Park Ave W, Denver CO 80205", phone:"303-294-0157", lat:39.7525, lng:-104.989, hours:{mon:'5:30-18:30',tue:'5:30-18:30',wed:'5:30-18:30',thu:'5:30-18:30',fri:'5:30-18:30',sat:'5:30-18:30',sun:'5:30-18:30'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Three free meals a day, 7 days a week, at about 5:30 AM, 12 PM and 6 PM. Hours shown cover the whole meal period, so go at meal time.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:72, name:"Christ's Body Ministries", category:"food", address:"850 Lincoln St, Denver CO 80203", phone:"", lat:39.7283, lng:-104.9866, hours:{mon:'closed',tue:'10:00-15:00',wed:'10:00-15:00',thu:'10:00-15:00',fri:'8:00-23:00',sat:'closed',sun:'18:00-20:00'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Groceries and hot meals. Tuesday to Thursday 10 AM to 3 PM. Friday listed as 8 AM to 11 PM (call to confirm). Saturday groceries and a hot meal at 2 PM at 16th & York (not this address). Sunday church service 6 PM, dinner 7 PM. Closed Monday.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:73, name:"Cathedral of the Immaculate Conception — Sandwiches", category:"food", address:"1530 Logan St, Denver CO 80203", phone:"", lat:39.74, lng:-104.9832, hours:{mon:'8:30-9:30',tue:'8:30-9:30',wed:'8:30-9:30',thu:'8:30-9:30',fri:'8:30-9:30',sat:'closed',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Free sandwiches and coffee Monday to Friday starting at 8:30 AM. Go right at 8:30.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:74, name:"Capitol Heights Presbyterian — Saturday Lunch", category:"food", address:"1100 Fillmore St, Denver CO 80206", phone:"", lat:39.7335, lng:-104.9528, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'11:30-12:30',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Free lunch on Saturdays at 11:30 AM. Saturdays only.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:75, name:"Hare Krishna Temple — Sunday Feast", category:"food", address:"1400 Cherry St, Denver CO 80220", phone:"", lat:39.7405, lng:-104.9323, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'18:45-19:30'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Free vegetarian feast on Sundays, 6:45 to 7:30 PM. Sundays only.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:76, name:"His Love Fellowship Church — Community Dinner", category:"food", address:"910 Kalamath St, Denver CO 80204", phone:"", lat:39.7298, lng:-105.0076, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'18:00-18:45',fri:'closed',sat:'closed',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Community dinner Thursdays, 6 to 6:45 PM. Also: Men's breakfast the 1st Saturday of the month, 8 to 10 AM. Women's breakfast the 2nd Saturday, 9 to 11 AM.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:77, name:"SAME Cafe (Pay What You Can)", category:"food", address:"2023 E Colfax Ave, Denver CO 80206", phone:"720-530-6853", lat:39.7403, lng:-104.965, hours:{mon:'11:00-14:00',tue:'11:00-14:00',wed:'11:00-14:00',thu:'11:00-14:00',fri:'11:00-14:00',sat:'11:00-14:00',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing. Pay what you can or work off your meal in the kitchen", description:"Not free, but pay what you can, or work in the kitchen to earn your meal. Monday to Saturday, 11 AM to 2 PM. Closed Sunday and holidays.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:78, name:"Open Door Ministries — Weekend Meals", category:"food", address:"1567 Marion St, Denver CO 80218", phone:"303-830-2201", lat:39.7424, lng:-104.9709, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'8:00-9:00',sun:'16:30-19:00'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Saturday breakfast at 8 AM. Sunday dinner at 6 PM. Heads up: the Sunday dinner requires attending church at 4:30 PM first.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:79, name:"St. Francis Center — Meals", category:"food", address:"2323 Curtis St, Denver CO 80205", phone:"303-297-1576", lat:39.7507, lng:-104.9875, hours:{mon:'closed',tue:'closed',wed:'15:00-16:30',thu:'closed',fri:'15:00-16:30',sat:'closed',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing required", description:"Meals Wednesdays and Fridays, 3 to 4:30 PM. No meal on the third Wednesday of each month.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:80, name:"Salud Clinic — Commerce City", category:"medical", address:"6255 Quebec Pkwy, Commerce City CO 80022", phone:"303-697-2583", lat:39.804, lng:-104.91, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:false, languages:["English", "Spanish"], bring:"Call to ask what to bring", description:"Community health clinic in Commerce City. Call to ask about hours and new patients. Also 970-484-0999.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19", hoursUnknown:true},
+  {id:81, name:"Liver Health Connection (Free Hep C Testing)", category:"medical", address:"1325 S Colorado Blvd, Suite B302, Denver CO 80222", phone:"800-522-4372", lat:39.6935, lng:-104.9406, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:false, languages:["English"], bring:"Call first", description:"Hep C resources and support, and free Hep C testing. Call for hours. Also 800-359-9272.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19", hoursUnknown:true},
+  {id:82, name:"VA Medical Center (Veterans)", category:"medical", address:"1700 N Wheeling St, Aurora CO 80045", phone:"303-399-8020", lat:39.7456, lng:-104.8387, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:false, languages:["English"], bring:"VA ID or discharge papers if you have them", description:"Care for veterans. Call to ask about hours and how to enroll.", source:"Denver VOICE resource list (printed); va.gov", verified:"2026-11-19", for:["vet"], forLabel:"Veterans", hoursUnknown:true},
+  {id:83, name:"National Runaway Safeline", category:"crisis", address:"Call from anywhere", phone:"800-786-2929", lat:39.7392, lng:-104.9903, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:true, languages:["English"], bring:"Nothing. Just call.", description:"Free, private help for young people who have run away or are thinking about it. 800-RUNAWAY.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19", for:["youth"], forLabel:"Youth"},
+  {id:84, name:"RAINN — Sexual Assault Hotline", category:"crisis", address:"Call from anywhere", phone:"800-656-4673", lat:39.7392, lng:-104.9903, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:true, languages:["English"], bring:"Nothing. Just call.", description:"Free, private support after sexual assault. 800-656-HOPE.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:85, name:"National HIV/AIDS Hotline", category:"crisis", address:"Call from anywhere", phone:"800-342-2437", lat:39.7392, lng:-104.9903, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing. Just call.", description:"Information and referrals about HIV and AIDS. 800-342-AIDS. Call for hours.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19", hoursUnknown:true},
+  {id:86, name:"Live Another Day — Helpline", category:"crisis", address:"Call from anywhere", phone:"877-596-6866", lat:39.7392, lng:-104.9903, hours:{mon:'0:00-23:59',tue:'0:00-23:59',wed:'0:00-23:59',thu:'0:00-23:59',fri:'0:00-23:59',sat:'0:00-23:59',sun:'0:00-23:59'}, walkin:true, languages:["English"], bring:"Nothing. Just call.", description:"24/7 helpline with mental health and substance use resources.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19"},
+  {id:87, name:"LGBT National Youth Talkline", category:"crisis", address:"Call from anywhere", phone:"800-246-7743", lat:39.7392, lng:-104.9903, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing. Just call.", description:"Peer support for LGBTQ+ youth. Call for hours.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19", for:["youth"], forLabel:"Youth", hoursUnknown:true},
+  {id:88, name:"Pride Institute (LGBTQ+ Treatment)", category:"crisis", address:"Call from anywhere", phone:"800-547-7433", lat:39.7392, lng:-104.9903, hours:{mon:'closed',tue:'closed',wed:'closed',thu:'closed',fri:'closed',sat:'closed',sun:'closed'}, walkin:true, languages:["English"], bring:"Nothing. Just call.", description:"Listed under LGBTQ+ support. Call to ask what they offer and what it costs.", source:"Denver VOICE resource list (printed)", verified:"2026-11-19", hoursUnknown:true}
 ];
 
 // ── SERVICE ACTIONS ───────────────────────────────────────────
@@ -734,6 +806,8 @@ const ACTIONS = {
 
 // ── PRE-ARRIVAL DATA ─────────────────────────────────────────
 const PRE_ARRIVAL = {
+  transit:  {bring:['Photo ID if you have one','A phone to show your ticket or take a photo for LiVE','Proof of age, disability or income if you want a discount'], say:'At the Special Discount Office say: "I would like to apply for an RTD discount." Staff will tell you which papers you need.', expect:'A short visit. Staff check your papers and explain the fare options. Youth 19 and under ride free with just a school or photo ID.', tip:'Not sure which rides are free for you? Call 211 and ask about free rides to medical visits.'},
+  crisis:   {bring:['Nothing. Just a phone.'], say:'You do not have to say anything special. Say what is going on in your own words.', expect:'A trained person answers. It is free and private. You can ask for help finding a safe place.', tip:'If you are in danger right now, call 911.'},
   shelter:  {bring:['Any ID you have (not required)','Any medications you take','One bag of belongings'], say:'Tell them: "I need a bed for tonight." They will add you to the queue.', expect:'You may wait 15–30 minutes. Staff will ask basic questions. Be honest — it helps them help you.', tip:'Arrive before 9 PM to improve your chances of getting a bed.'},
   food:     {bring:['Nothing — just yourself'], say:'Walk in and join the line. No need to say anything special.', expect:'You will be served a hot meal. No questions, no ID required.', tip:'Arrive a few minutes before meal times for shorter waits.'},
   medical:  {bring:['Any ID you have (not required at Denver Health or CCH)','Insurance or Medicaid card if you have one — not required','List of medications you take','Description of your symptoms or what you need help with'], say:'Tell the front desk: "I need to be seen by a doctor." If you do not have insurance say so — they will still see you. All Denver Health and CCH clinics use sliding-scale fees based on your income. You may pay very little or nothing.', expect:'You may need to fill out a short intake form. Wait times vary. Services are sliding-scale or free for low-income patients.', tip:'Arrive right when they open to be seen sooner. Bring your ID if you have it — it helps with records but is not required at most clinics.'},
@@ -780,9 +854,53 @@ function fmtHours(raw) {
   return to12(s) + ' – ' + to12(e);
 }
 
-function hoursToday(svc) { return fmtHours(svc.hours[dayKey()]); }
+function hoursToday(svc) { if (svc.hoursUnknown) return 'Call for hours'; return fmtHours(svc.hours[dayKey()]); }
+
+// ── ADDED ACTIONS (Nov 2026 update) ──
+ACTIONS[50]=[{"t": "walkin", "l": "Get your discount card", "d": "Go Monday to Thursday, 9 AM to 3 PM (closed noon to 1). Say: \"I would like to apply for an RTD discount.\" Bring photo ID and proof of age, disability or income."}, {"t": "phone", "l": "Call the office", "v": "303-299-2668"}, {"t": "directions", "l": "Get directions", "a": "1660 Blake St, Denver CO 80202"}];
+ACTIONS[51]=[{"t": "url", "l": "Apply for LiVE (half-price fares)", "u": "https://www.rtd-denver.com/fares-passes/discount-fares"}, {"t": "phone", "l": "Call for help applying", "v": "303-299-2668"}, {"t": "directions", "l": "Get directions", "a": "1660 Blake St, Denver CO 80202"}];
+ACTIONS[52]=[{"t": "url", "l": "See RTD discount details", "u": "https://www.rtd-denver.com/fares-passes/discount-fares"}, {"t": "phone", "l": "Call RTD Discount Office", "v": "303-299-2668"}];
+ACTIONS[53]=[{"t": "phone", "l": "Call 211 now", "v": "211"}, {"t": "url", "l": "Text or chat with 211", "u": "https://211colorado.org"}];
+ACTIONS[54]=[{"t": "phone", "l": "Call 988 now", "v": "988"}, {"t": "url", "l": "Text or chat", "u": "https://988lifeline.org"}];
+ACTIONS[55]=[{"t": "phone", "l": "Call the hotline now", "v": "800-799-7233"}];
+ACTIONS[56]=[{"t": "phone", "l": "Call The Trevor Project", "v": "866-488-7386"}, {"t": "url", "l": "Chat or text online", "u": "https://www.thetrevorproject.org"}];
+ACTIONS[57]=[{"t": "walkin", "l": "Walk in for supplies or testing", "d": "Open Monday to Friday, 9 AM to noon. Services are for people who inject drugs."}, {"t": "phone", "l": "Call now", "v": "303-572-7800"}, {"t": "directions", "l": "Get directions", "a": "231 E Colfax Ave, Denver CO 80203"}];
+ACTIONS[58]=[{"t": "walkin", "l": "Walk in for care", "d": "Monday to Friday, 8 AM to 2 PM. Tell the front desk what you need."}, {"t": "phone", "l": "Emergency walk-in line", "v": "303-296-1767"}, {"t": "phone", "l": "Dental line", "v": "303-296-4873"}, {"t": "directions", "l": "Get directions", "a": "3800 York St, Denver CO 80205"}];
+ACTIONS[59]=[{"t": "walkin", "l": "Get a shower or do laundry", "d": "Monday to Friday, 7 AM to 1 PM. Walk in and ask for a shower or laundry."}, {"t": "phone", "l": "Call now", "v": "303-607-0855"}, {"t": "directions", "l": "Get directions", "a": "1101 W 7th Ave, Denver CO 80204"}];
+ACTIONS[60]=[{"t": "walkin", "l": "Come in and get warm", "d": "Monday to Friday, 7 AM to 5:30 PM. Bathrooms, coffee, snacks and Wi-Fi."}, {"t": "phone", "l": "Call now", "v": "303-830-2201"}, {"t": "directions", "l": "Get directions", "a": "1567 Marion St, Denver CO 80218"}];
+ACTIONS[61]=[{"t": "walkin", "l": "Get help with your ID or mail", "d": "Monday to Thursday, 10 AM to 2 PM. Say: \"I need help with an ID.\""}, {"t": "phone", "l": "Call now", "v": "303-783-3777"}, {"t": "directions", "l": "Get directions", "a": "2575 S Broadway, Denver CO 80210"}];
+ACTIONS[62]=[{"t": "walkin", "l": "Walk in for job help", "d": "Monday to Friday, 7:30 AM to 4:30 PM. Free computers and resume help."}, {"t": "directions", "l": "Get directions", "a": "1200 Federal Blvd, Denver CO 80204"}];
+ACTIONS[63]=[{"t": "walkin", "l": "Come in for meals and a rest", "d": "Must be 60 or older. Weekdays 7 AM to 7 PM, Sunday 11 AM to 4 PM."}, {"t": "directions", "l": "Get directions", "a": "846 E 18th Ave, Denver CO 80218"}];
+ACTIONS[64]=[{"t": "walkin", "l": "Get free food", "d": "Wednesday to Friday, 10 AM to noon. No ID needed."}, {"t": "phone", "l": "Call now", "v": "303-322-5733"}, {"t": "directions", "l": "Get directions", "a": "1212 Mariposa St, Denver CO 80204"}];
+ACTIONS[65]=[{"t": "walkin", "l": "Get a hot meal", "d": "Monday, Tuesday, Thursday, Friday. 11:45 AM to 12:15 PM. Line forms outside Trinity United Methodist."}, {"t": "directions", "l": "Get directions", "a": "1820 Broadway, Denver CO 80202"}];
+ACTIONS[66]=[{"t": "walkin", "l": "Get a sandwich", "d": "Monday to Saturday, 10 AM to 10:30 AM."}, {"t": "directions", "l": "Get directions", "a": "1900 California St, Denver CO 80202"}];
+ACTIONS[67]=[{"t": "walkin", "l": "Get food and coffee", "d": "Every day, starting at 11 AM."}, {"t": "directions", "l": "Get directions", "a": "Speer Blvd & Arapahoe St, Denver CO 80204"}];
+ACTIONS[68]=[{"t": "walkin", "l": "Get lunch in the park", "d": "Wednesdays, 12 to 1 PM, at Benedict Fountain Park (Tremont Pl and 22nd St)."}, {"t": "directions", "l": "Get directions", "a": "Benedict Fountain Park, Denver CO 80205"}];
+ACTIONS[69]=[{"t": "walkin", "l": "Get a meal or food box", "d": "Meals Mon to Thu about 8 AM, 11:30 AM, 5 PM. Fri lunch noon. Sun lunch 1 PM."}, {"t": "phone", "l": "Call now", "v": "303-297-0408"}, {"t": "directions", "l": "Get directions", "a": "2877 Lawrence St, Denver CO 80205"}];
+
+// ── ADDED ACTIONS (Denver VOICE print update) ──
+ACTIONS[70]=[{"t": "phone", "l": "Call the Connection Center", "v": "303-295-3366"}];
+ACTIONS[71]=[{"t": "walkin", "l": "Get a free meal", "d": "Meals at about 5:30 AM, 12 PM and 6 PM, every day. Walk in and join the line."}, {"t": "phone", "l": "Call now", "v": "303-294-0157"}, {"t": "directions", "l": "Get directions", "a": "1130 Park Ave W, Denver CO 80205"}];
+ACTIONS[72]=[{"t": "walkin", "l": "Get groceries or a hot meal", "d": "Tuesday to Thursday 10 AM to 3 PM. Call to confirm Friday hours."}, {"t": "directions", "l": "Get directions", "a": "850 Lincoln St, Denver CO 80203"}];
+ACTIONS[73]=[{"t": "walkin", "l": "Get a sandwich and coffee", "d": "Monday to Friday at 8:30 AM."}, {"t": "directions", "l": "Get directions", "a": "1530 Logan St, Denver CO 80203"}];
+ACTIONS[74]=[{"t": "walkin", "l": "Get Saturday lunch", "d": "Saturdays at 11:30 AM."}, {"t": "directions", "l": "Get directions", "a": "1100 Fillmore St, Denver CO 80206"}];
+ACTIONS[75]=[{"t": "walkin", "l": "Get a free vegetarian meal", "d": "Sundays 6:45 to 7:30 PM."}, {"t": "directions", "l": "Get directions", "a": "1400 Cherry St, Denver CO 80220"}];
+ACTIONS[76]=[{"t": "walkin", "l": "Get dinner", "d": "Thursdays 6 to 6:45 PM."}, {"t": "directions", "l": "Get directions", "a": "910 Kalamath St, Denver CO 80204"}];
+ACTIONS[77]=[{"t": "walkin", "l": "Eat, pay what you can", "d": "Monday to Saturday 11 AM to 2 PM. You can work in the kitchen instead of paying."}, {"t": "phone", "l": "Call now", "v": "720-530-6853"}, {"t": "directions", "l": "Get directions", "a": "2023 E Colfax Ave, Denver CO 80206"}];
+ACTIONS[78]=[{"t": "walkin", "l": "Get a weekend meal", "d": "Saturday breakfast 8 AM. Sunday dinner 6 PM (church at 4:30 PM comes first)."}, {"t": "phone", "l": "Call now", "v": "303-830-2201"}, {"t": "directions", "l": "Get directions", "a": "1567 Marion St, Denver CO 80218"}];
+ACTIONS[79]=[{"t": "walkin", "l": "Get a meal", "d": "Wednesdays and Fridays, 3 to 4:30 PM. No meal the third Wednesday of the month."}, {"t": "phone", "l": "Call now", "v": "303-297-1576"}, {"t": "directions", "l": "Get directions", "a": "2323 Curtis St, Denver CO 80205"}];
+ACTIONS[80]=[{"t": "phone", "l": "Call the clinic", "v": "303-697-2583"}, {"t": "directions", "l": "Get directions", "a": "6255 Quebec Pkwy, Commerce City CO 80022"}];
+ACTIONS[81]=[{"t": "phone", "l": "Call for free Hep C testing", "v": "800-522-4372"}, {"t": "directions", "l": "Get directions", "a": "1325 S Colorado Blvd, Denver CO 80222"}];
+ACTIONS[82]=[{"t": "phone", "l": "Call the VA", "v": "303-399-8020"}, {"t": "directions", "l": "Get directions", "a": "1700 N Wheeling St, Aurora CO 80045"}];
+ACTIONS[83]=[{"t": "phone", "l": "Call now", "v": "800-786-2929"}];
+ACTIONS[84]=[{"t": "phone", "l": "Call now", "v": "800-656-4673"}];
+ACTIONS[85]=[{"t": "phone", "l": "Call now", "v": "800-342-2437"}];
+ACTIONS[86]=[{"t": "phone", "l": "Call now", "v": "877-596-6866"}];
+ACTIONS[87]=[{"t": "phone", "l": "Call now", "v": "800-246-7743"}];
+ACTIONS[88]=[{"t": "phone", "l": "Call now", "v": "800-547-7433"}];
 
 function isOpen(svc) {
+  if (svc.hoursUnknown) return false;
   const h = svc.hours[dayKey()];
   if (!h || h === 'closed') return false;
   if (h === '0:00-23:59') return true;
@@ -828,6 +946,7 @@ function goBack() { goScreen(prevScreen==='s-detail'?'s-browse':prevScreen); }
 function filtered() {
   return SERVICES.filter(s=>{
     if (activeCats.size && !activeCats.has(s.category)) return false;
+    if (!canUse(s)) return false;
     if (openNow && !isOpen(s)) return false;
     if (searchQ) { const q=searchQ.toLowerCase(); if (!s.name.toLowerCase().includes(q)&&!s.description.toLowerCase().includes(q)) return false; }
     return true;
@@ -851,7 +970,7 @@ function toggleOpen() {
   refresh();
 }
 
-function refresh() { if(activeView==='map') renderMarkers(); else renderList(); }
+function refresh() { if(activeView==='map' && map && window.L) { try{renderMarkers();}catch(e){renderList();} } else renderList(); }
 
 // ── MAP ───────────────────────────────────────────────────────
 function initMap() {
@@ -872,7 +991,7 @@ function renderMarkers() {
     const icon=L.divIcon({className:'',html:'<div style="width:38px;height:38px;background:'+c.color+';border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;opacity:'+(open?1:.6)+'"><svg width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="'+c.icon+'"/></svg></div>',iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-22]});
     const dist=fmtDist(km(userLat,userLng,svc.lat,svc.lng));
     const m=L.marker([svc.lat,svc.lng],{icon}).addTo(map);
-    m.bindPopup('<div class="pp-name">'+svc.name+'</div><div class="pp-sub">'+dist+' · <span style="color:'+(open?'#1B7A3E':'#C4161C')+';font-weight:700">'+(open?'Open now':'Closed')+'</span></div><button class="pp-btn" onclick="openDetail('+svc.id+')">See details & actions →</button>');
+    m.bindPopup('<div class="pp-name">'+svc.name+'</div><div class="pp-sub">'+dist+' · <span style="color:'+(open?'#1B7A3E':'#C4161C')+';font-weight:700">'+(svc.hoursUnknown?'Call for hours':open?'Open now':'Closed')+'</span></div><button class="pp-btn" onclick="openDetail('+svc.id+')">See details & actions →</button>');
     m.on('click',()=>setTimeout(()=>openDetail(svc.id),80));
     markers.push(m);
   });
@@ -886,14 +1005,14 @@ function renderList() {
     el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>No services match</p><span>Try adjusting your filters</span></div>';
     return;
   }
-  el.innerHTML=svcs.map(svc=>{
+  el.innerHTML=hiddenNote()+svcs.map(svc=>{
     const c=cat(svc.category), open=isOpen(svc), dist=fmtDist(km(userLat,userLng,svc.lat,svc.lng));
     return '<div class="scard" onclick="openDetail('+svc.id+')">'
       +'<div class="scard-top">'
       +'<div class="scard-icon" style="background:'+c.bg+';color:'+c.color+'"><svg width="21" height="21" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="'+c.icon+'"/></svg></div>'
       +'<div style="flex:1"><div class="scard-name">'+svc.name+'</div>'
-      +'<div class="scard-cat" style="color:'+c.color+'">'+c.label+'</div>'
-      +'<div class="'+(open?'badge-open':'badge-closed')+'"><div class="dot '+(open?'dot-g':'dot-r')+'"></div>'+(open?'Open now':'Closed')+'</div>'
+      +'<div class="scard-cat" style="color:'+c.color+'">'+c.label+'</div>'+whoBadge(svc)
+      +'<div class="'+(open?'badge-open':'badge-closed')+'"><div class="dot '+(open?'dot-g':'dot-r')+'"></div>'+(svc.hoursUnknown?'Call for hours':open?'Open now':'Closed')+'</div>'
       +'</div></div>'
       +'<div class="scard-pills">'
       +'<div class="spill"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+dist+'</div>'
@@ -913,7 +1032,7 @@ function openDetail(id) {
   const actHTML=actList.map((a,i)=>renderAction(a,i===0)).join('');
 
   const hoursHTML=dayLabels.map((lab,i)=>{
-    const dk=dayKeys[i], h=fmtHours(svc.hours[dk]||'closed'), today=i===todayIdx();
+    const dk=dayKeys[i], h=svc.hoursUnknown?'Call to confirm':fmtHours(svc.hours[dk]||'closed'), today=i===todayIdx();
     return '<div class="h-day'+(today?' today':'')+'">'+lab.slice(0,3)+'</div><div class="h-hrs'+(today?' today':'')+'">'+h+'</div>';
   }).join('');
 
@@ -926,12 +1045,13 @@ function openDetail(id) {
     +'<div class="d-hero-top">'
     +'<div class="d-hero-icon" style="background:'+c.bg+'"><svg width="25" height="25" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="'+c.icon+'"/></svg></div>'
     +'<div><div class="d-cat-label" style="color:'+c.color+'">'+c.label+'</div>'
-    +'<div class="'+(open?'badge-open':'badge-closed')+'" style="margin-top:4px"><div class="dot '+(open?'dot-g':'dot-r')+'"></div>'+(open?'Open right now':'Closed right now')+'</div></div>'
+    +'<div class="'+(open?'badge-open':'badge-closed')+'" style="margin-top:4px"><div class="dot '+(open?'dot-g':'dot-r')+'"></div>'+(svc.hoursUnknown?'Call for hours':open?'Open right now':'Closed right now')+'</div></div>'
     +'</div>'
     +'<div class="d-name">'+svc.name+'</div>'
     +'<div class="d-desc">'+svc.description+'</div>'
     +'</div>'
 
+    +whoNote(svc)
     +buildScheduleNote(svc)
     +buildBusyMeter(svc)
     +'<div class="act-section">'
@@ -945,6 +1065,7 @@ function openDetail(id) {
     +'<div class="d-muted" style="margin-top:4px;font-size:13px">'+fmtDist(km(userLat,userLng,svc.lat,svc.lng))+' from your location</div>'
     +'</div>'
 
+    +buildGettingThere(svc)
     +'<div class="d-card">'
     +'<div class="d-lbl">Hours this week</div>'
     +'<div class="hrs-grid">'+hoursHTML+'</div>'
@@ -1079,7 +1200,7 @@ function formatTime12(t) {
 // ── HOME SCREEN BUILDERS ──────────────────────────────────────
 function buildCatGrid() {
   const QA=[
-    {label:'I need shelter tonight', sub:'Emergency beds', cat:'shelter', urgent:true},
+    {label:'I need shelter tonight', sub:'Find the right door', cat:'shelter', urgent:true},
     {label:'I need food', sub:'Free meals near me', cat:'food'},
     {label:'Medical help', sub:'Clinics & health', cat:'medical'},
     {label:'Shower & hygiene', sub:'Showers & supplies', cat:'hygiene'},
@@ -1088,7 +1209,9 @@ function buildCatGrid() {
     {label:'Find a job', sub:'Training & work', cat:'jobs'},
     {label:'Free groceries', sub:'Choose your own food', cat:'grocery'},
     {label:'Volunteer', sub:'Give back in Denver', cat:'volunteer'},
-    {label:'See everything', sub:'All 49 services', cat:null},
+    {label:'Free & cheap rides', sub:'Bus, train, discounts', cat:'transit'},
+    {label:'Crisis lines', sub:'Talk to someone now', cat:'crisis'},
+    {label:'See everything', sub:'All '+SERVICES.length+' services', cat:null},
   ];
   document.getElementById('cat-grid').innerHTML=QA.map(q=>{
     const c=q.cat?cat(q.cat):{color:'#0096D6',bg:'#d0eaf7',icon:'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 10m-1 0a1 1 0 1 0 2 0a1 1 0 0 0-2 0'};
@@ -1108,14 +1231,15 @@ function quickGo(catId) {
 }
 
 function buildNearby() {
-  const svcs=[...SERVICES].sort((a,b)=>km(userLat,userLng,a.lat,a.lng)-km(userLat,userLng,b.lat,b.lng)).slice(0,6);
+  const near=[...SERVICES].filter(s=>s.category!=='volunteer'&&s.category!=='transit'&&s.category!=='crisis'&&canUse(s)&&isOpen(s)).sort((a,b)=>km(userLat,userLng,a.lat,a.lng)-km(userLat,userLng,b.lat,b.lng));
+  const svcs=near.slice(0,6);
   document.getElementById('nearby-strip').innerHTML=svcs.map(svc=>{
     const c=cat(svc.category), open=isOpen(svc), dist=fmtDist(km(userLat,userLng,svc.lat,svc.lng));
     return '<div class="nc" onclick="openDetail('+svc.id+')">'
       +'<div class="nc-cat" style="color:'+c.color+'">'+c.label+'</div>'
       +'<div class="nc-name">'+svc.name+'</div>'
-      +'<div class="nc-dist">'+dist+'</div>'
-      +'<div class="'+(open?'badge-open':'badge-closed')+'"><div class="dot '+(open?'dot-g':'dot-r')+'"></div>'+(open?'Open now':'Closed')+'</div>'
+      +'<div class="nc-dist">'+dist+'</div>'+whoBadge(svc)
+      +'<div class="'+(open?'badge-open':'badge-closed')+'"><div class="dot '+(open?'dot-g':'dot-r')+'"></div>'+(svc.hoursUnknown?'Call for hours':open?'Open now':'Closed')+'</div>'
       +'</div>';
   }).join('');
 }
@@ -1143,14 +1267,14 @@ function setView(v) {
 // ── GEO ───────────────────────────────────────────────────────
 function locateUser() {
   if(!navigator.geolocation){alert('Location not available on this device.');return;}
-  const btn=document.getElementById('btn-locate');
+  const btn=document.getElementById('btn-locate')||{};
   btn.textContent='Finding…';
   navigator.geolocation.getCurrentPosition(pos=>{
     userLat=pos.coords.latitude; userLng=pos.coords.longitude;
     map&&map.setView([userLat,userLng],15);
     btn.innerHTML='<svg width="15" height="15" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Near me';
-    buildNearby(); refresh();
-  },()=>{btn.innerHTML='<svg width="15" height="15" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Near me';},
+    userLocated=true; buildNearby(); refresh(); updateLocCard(); checkProximity();
+  },()=>{updateLocCard('denied');btn.innerHTML='<svg width="15" height="15" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Near me';},
   {enableHighAccuracy:true,timeout:10000});
 }
 
@@ -1275,8 +1399,149 @@ function buildBusyMeter(svc) {
     + '<strong>Typically busiest:</strong> '+bp.peak+'<br>'
     + '<strong>Usually quieter:</strong> '+bp.quiet
     + '</div>'
-    + '<div class="busy-source">Typical busyness based on Google Popular Times data patterns for similar service locations</div>'
+    + '<div class="busy-source">Estimate only: a typical pattern for this kind of service, not live data. Arrive early, and call if you can.</div>'
     + '</div>';
+}
+
+
+
+// ── WHO IS THIS FOR ───────────────────────────────────────────
+const WHO=[['man','Man'],['woman','Woman'],['trans','Trans / nonbinary'],['youth','Youth under 25'],['family','Family with kids'],['senior','Age 60+'],['vet','Veteran']];
+let me=new Set();
+try { const raw=localStorage.getItem('roshni_me'); if(raw) JSON.parse(raw).forEach(k=>me.add(k)); } catch(e) {}
+function canUse(svc) { if(!svc.for||!svc.for.length) return true; if(!me.size) return true; return svc.for.some(k=>me.has(k)); }
+function whoBadge(svc) { return svc.forLabel ? '<div class="who-badge">For: '+svc.forLabel+'</div>' : ''; }
+function hiddenCount() { return SERVICES.filter(x=>!canUse(x)).length; }
+function hiddenNote() {
+  const n=hiddenCount(); if(!n) return '';
+  return '<div class="hidden-note">Hiding '+n+' place'+(n===1?'':'s')+' that are for someone else. <button onclick="clearMe()">Show all</button></div>';
+}
+function toggleMe(k) {
+  me.has(k)?me.delete(k):me.add(k);
+  try { localStorage.setItem('roshni_me', JSON.stringify([...me])); } catch(e) {}
+  updateMeCard(); buildNearby(); refresh();
+}
+function clearMe() { me.clear(); try{localStorage.setItem('roshni_me','[]');}catch(e){} updateMeCard(); buildNearby(); refresh(); }
+function updateMeCard() {
+  const el=document.getElementById('me-card'); if(!el) return;
+  const pills=WHO.map(w=>'<button class="who-pill'+(me.has(w[0])?' on':'')+'" onclick="toggleMe(\''+w[0]+'\')">'+w[1]+'</button>').join('');
+  const n=hiddenCount();
+  el.innerHTML='<div class="gt"><strong>Who is looking for help?</strong>Some shelters are only for men, women, youth or families. Pick what fits and we will hide places you cannot use. Pick more than one if it fits.<div class="who-row">'+pills+'</div>'+(me.size?'<div class="who-note">Hiding '+n+' place'+(n===1?'':'s')+' for someone else. <button onclick="clearMe()">Show all</button></div>':'')+'</div>';
+}
+function whoNote(svc) {
+  if(!svc.forLabel) return '';
+  return '<div class="who-detail"><strong>Who this is for:</strong> '+svc.forLabel+'. If this is not you, check the tag on other places so you do not make the trip for nothing.</div>';
+}
+
+// ── GETTING THERE ─────────────────────────────────────────────
+function mapsUrl(addr, mode) {
+  return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(addr)+'&travelmode='+mode;
+}
+function buildGettingThere(svc) {
+  if (svc.category==='crisis' || svc.address.indexOf('Call')===0 || svc.address.indexOf('Apply')===0 || svc.address.indexOf('Any RTD')===0) return '';
+  const d = km(userLat,userLng,svc.lat,svc.lng);
+  const walk = Math.max(1, Math.round(d/0.08));
+  let line;
+  if (d < 0.15) line = 'You are very close.';
+  else if (d <= 3) line = 'About a '+walk+' minute walk.';
+  else line = 'About '+d.toFixed(1)+' km away. A bus or train may be faster than walking.';
+  return '<div class="d-card gt-card"><div class="d-lbl">Getting there</div>'
+    +'<div class="d-val">'+line+'</div>'
+    +'<div class="d-muted" style="font-size:13px;margin-top:4px">Riders 19 and under ride RTD free. Half-price fares for low income, 65+ and disability.</div>'
+    +'<div class="gt-row">'
+    +'<a class="gt-b" target="_blank" rel="noopener" href="'+mapsUrl(svc.address,'transit')+'">Bus &amp; train directions</a>'
+    +'<a class="gt-b alt" target="_blank" rel="noopener" href="'+mapsUrl(svc.address,'walking')+'">Walking directions</a>'
+    +'</div>'
+    +'<div class="gt-row"><button class="gt-b alt" onclick="quickGo(\'transit\')">Free &amp; cheap rides</button></div>'
+    +'</div>';
+}
+
+// ── LOCATION + NEARBY ALERTS ──────────────────────────────────
+let userLocated=false, watchId=null, alertsOn=false;
+const alertedAt={};
+const ALERT_RADIUS_KM=0.3;
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+
+function updateLocCard(state) {
+  const el=document.getElementById('loc-card'); if(!el) return;
+  if(userLocated){
+    el.innerHTML='<div class="gt"><strong>Showing help closest to you</strong>Based on where you are now.</div><button class="geo-btn off" onclick="locateUser()">Refresh</button>';
+  } else if(state==='denied'){
+    el.innerHTML='<div class="gt"><strong>Location is off</strong>Showing downtown Denver. You can turn location on in your phone settings for this site.</div><button class="geo-btn off" onclick="locateUser()">Try again</button>';
+  } else {
+    el.innerHTML='<div class="gt"><strong>See what is closest to you</strong>Tap to share your location. It stays on your phone.</div><button class="geo-btn" onclick="locateUser()">Use my location</button>';
+  }
+}
+function updateAlertCard() {
+  const el=document.getElementById('alert-card'); if(!el) return;
+  el.innerHTML = alertsOn
+   ? '<div class="gt"><strong>Nearby alerts are on</strong>We will tell you when you are close to open help. Works while Roshni is open on your screen.</div><button class="geo-btn off" onclick="toggleAlerts()">Turn off</button>'
+   : '<div class="gt"><strong>Alert me when I am near help</strong>Get a heads-up when you walk near a place that is open. Works while Roshni is open on your screen.</div><button class="geo-btn" onclick="toggleAlerts()">Turn on</button>';
+}
+function toggleAlerts() {
+  if (alertsOn) { stopAlerts(); return; }
+  if (!navigator.geolocation) { alert('Location is not available on this device.'); return; }
+  alertsOn=true; lsSet('roshni_alerts','1');
+  try { if (window.Notification && Notification.permission==='default') Notification.requestPermission(); } catch(e) {}
+  startWatch(); updateAlertCard();
+}
+function stopAlerts() {
+  alertsOn=false; lsSet('roshni_alerts','0');
+  if (watchId!==null && navigator.geolocation) navigator.geolocation.clearWatch(watchId);
+  watchId=null; updateAlertCard();
+}
+function startWatch() {
+  if (watchId!==null || !navigator.geolocation) return;
+  watchId=navigator.geolocation.watchPosition(pos=>{
+    userLat=pos.coords.latitude; userLng=pos.coords.longitude; userLocated=true;
+    updateLocCard(); checkProximity();
+  }, ()=>{}, {enableHighAccuracy:true, maximumAge:30000, timeout:20000});
+}
+function nearbyOpen() {
+  return SERVICES.filter(s=>{
+    if (['volunteer','transit','crisis','jobs','legal'].indexOf(s.category)>=0) return false;
+    return canUse(s) && km(userLat,userLng,s.lat,s.lng)<=ALERT_RADIUS_KM && isOpen(s);
+  }).sort((a,b)=>km(userLat,userLng,a.lat,a.lng)-km(userLat,userLng,b.lat,b.lng));
+}
+function checkProximity() {
+  if (!alertsOn) return;
+  const now=Date.now();
+  const hit=nearbyOpen().find(s=>!alertedAt[s.id] || now-alertedAt[s.id]>6*3600*1000);
+  if (hit) fireAlert(hit);
+}
+function fireAlert(svc) {
+  alertedAt[svc.id]=Date.now();
+  const m=Math.round(km(userLat,userLng,svc.lat,svc.lng)*1000);
+  const msg=svc.name+' is open and about '+m+' meters away.';
+  const b=document.getElementById('alert-banner');
+  b.innerHTML='<div>Nearby: '+msg+'</div><button onclick="document.getElementById(\'alert-banner\').style.display=\'none\';openDetail('+svc.id+')">See details</button><button class="x" onclick="document.getElementById(\'alert-banner\').style.display=\'none\'">Dismiss</button>';
+  b.style.display='block';
+  try { if (navigator.vibrate) navigator.vibrate([200,100,200]); } catch(e) {}
+  try { if (window.Notification && Notification.permission==='granted') new Notification('Roshni: help nearby', {body:msg}); } catch(e) {}
+}
+
+// ── WINTER CARD ───────────────────────────────────────────────
+function buildWinter() {
+  const el=document.getElementById('winter-slot'); if(!el) return;
+  const m=new Date().getMonth();
+  if (m>=4 && m<=8) { el.innerHTML=''; return; }
+  el.innerHTML='<div class="winter-card"><strong>Cold weather help</strong>'
+    +'When it is very cold (about 25°F or colder), Denver opens extra cold-weather shelter. Opening nights change, so call <a href="tel:211">211</a> to find a bed tonight, text INDOORS to 67283 for updates, or visit denvergov.org/findshelter. Shelters are split by who they serve: men, women, youth and families each have their own door. '
+    +'Families can call the Connection Center at <a href="tel:303-295-3366">303-295-3366</a>. '
+    +'<button onclick="quickGo(\'shelter\')">See shelters</button> &nbsp; <button onclick="quickGo(\'transit\')">Free rides</button></div>';
+}
+
+// ── PERMISSION-AWARE START ────────────────────────────────────
+function startGeo() {
+  updateMeCard(); updateLocCard(); updateAlertCard(); buildWinter();
+  try {
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({name:'geolocation'}).then(p=>{
+        if (p.state==='granted') { locateUser(); if (lsGet('roshni_alerts')==='1') { alertsOn=true; startWatch(); updateAlertCard(); } }
+      }).catch(()=>{});
+    }
+  } catch(e) {}
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -1284,7 +1549,8 @@ buildCatGrid();
 buildNearby();
 buildEvents();
 buildChips();
-initMap();
+startGeo();
+try{initMap();}catch(e){console.log('map unavailable',e);}
 </script>
 </body>
 </html>
